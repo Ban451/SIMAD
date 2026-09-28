@@ -437,7 +437,7 @@
                 <div class="col-md-6">
                     <h5 class="mb-3"><i class="bi bi-file-earmark-text"></i> SIMAD</h5>
                     <p class="text-white-50 small">Sistem Informasi Manajemen Dokumen Akademik Siswa</p>
-                    <p class="mb-0 small">&copy; 2026 SIMAD - SMK Amadeo. All rights reserved.</p>
+                    <p class="mb-0 small">&copy; 2026 SIMAD - SMK 5 SURAKARTA. All rights reserved.</p>
                     <small class="text-white-50">slamd.amadee.sch.id</small>
                 </div>
                 <div class="col-md-6 text-md-end">

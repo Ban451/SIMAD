@@ -100,7 +100,7 @@
         <div class="topbar">
             <div>
                 <h5><i class="bi bi-grid"></i> <span id="page-title">Dashboard Siswa</span></h5>
-                <small class="text-muted">SMK Amadeo - {{ date('l, d F Y') }}</small>
+                <small class="text-muted">SMK 5 SURAKARTA - {{ date('l, d F Y') }}</small>
             </div>
             <div><span class="badge bg-success">Siswa</span></div>
         </div>

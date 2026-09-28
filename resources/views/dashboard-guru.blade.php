@@ -57,6 +57,7 @@
         .badge-request-status.pending { background: #fff3cd; color: #856404; }
         .badge-request-status.approved { background: #d4edda; color: #155724; }
         .badge-request-status.rejected { background: #f8d7da; color: #721c24; }
+        .spinner-border-sm { width: 1rem; height: 1rem; }
     </style>
 </head>
 <body>
@@ -74,7 +75,7 @@
             <button class="nav-link" data-page="request">
                 <i class="bi bi-envelope-paper"></i> Request Siswa
                 @if(isset($data['request_count']) && $data['request_count'] > 0)
-                    <span class="badge-request">{{ $data['request_count'] }}</span>
+                    <span class="badge-request" id="requestBadge">{{ $data['request_count'] }}</span>
                 @endif
             </button>
             <button class="nav-link" data-page="profil"><i class="bi bi-person-circle"></i> Profil</button>
@@ -101,7 +102,7 @@
         <div class="topbar">
             <div>
                 <h5><i class="bi bi-grid"></i> <span id="page-title">Dashboard</span></h5>
-                <small class="text-muted">SMK Amadeo - {{ date('l, d F Y') }}</small>
+                <small class="text-muted">SMK 5 SURAKARTA - {{ date('l, d F Y') }}</small>
             </div>
             <div><span class="badge bg-primary">Guru</span></div>
         </div>
@@ -111,25 +112,25 @@
             <div class="row g-3 mb-4">
                 <div class="col-md-3">
                     <div class="stat-card d-flex justify-content-between align-items-center">
-                        <div><div class="number">{{ $data['total_dokumen'] ?? 0 }}</div><div class="label">Total Dokumen</div></div>
+                        <div><div class="number" id="statDokumen">{{ $data['total_dokumen'] ?? 0 }}</div><div class="label">Total Dokumen</div></div>
                         <i class="bi bi-file-earmark fs-1 text-primary opacity-50"></i>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="stat-card d-flex justify-content-between align-items-center">
-                        <div><div class="number">{{ $data['total_terverifikasi'] ?? 0 }}</div><div class="label">Terverifikasi</div></div>
+                        <div><div class="number" id="statTerverifikasi">{{ $data['total_terverifikasi'] ?? 0 }}</div><div class="label">Terverifikasi</div></div>
                         <i class="bi bi-check-circle fs-1 text-success opacity-50"></i>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="stat-card d-flex justify-content-between align-items-center">
-                        <div><div class="number">{{ $data['total_menunggu'] ?? 0 }}</div><div class="label">Menunggu</div></div>
+                        <div><div class="number" id="statMenunggu">{{ $data['total_menunggu'] ?? 0 }}</div><div class="label">Menunggu</div></div>
                         <i class="bi bi-clock fs-1 text-warning opacity-50"></i>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="stat-card d-flex justify-content-between align-items-center">
-                        <div><div class="number">{{ $data['total_request'] ?? 0 }}</div><div class="label">Request Masuk</div></div>
+                        <div><div class="number" id="statRequest">{{ $data['total_request'] ?? 0 }}</div><div class="label">Request Masuk</div></div>
                         <i class="bi bi-envelope-paper fs-1 text-info opacity-50"></i>
                     </div>
                 </div>
@@ -139,7 +140,7 @@
             <div class="table-documents mb-4">
                 <h6 class="mb-3"><i class="bi bi-envelope-paper"></i> Request Terbaru</h6>
                 @foreach($data['requests']->take(3) as $req)
-                <div class="request-card pending">
+                <div class="request-card pending" id="req-card-{{ $req->id }}">
                     <div class="request-info">
                         <div>
                             <strong>{{ $req->judul }}</strong>
@@ -229,7 +230,7 @@
                         </thead>
                         <tbody id="dokumenBody">
                             @forelse($data['dokumen'] as $dok)
-                            <tr>
+                            <tr data-id="{{ $dok->id }}">
                                 <td><span class="fw-bold">#{{ $dok->id }}</span></td>
                                 <td>{{ $dok->judul }}</td>
                                 <td>{{ $dok->siswa->nama ?? '-' }}</td>
@@ -242,17 +243,17 @@
                                 </td>
                                 <td>{{ $dok->created_at->format('d M Y') }}</td>
                                 <td>
-                                    <a href="{{ route('guru.dokumen.preview', $dok->id) }}" 
+                                    <a href="{{ route('guru.dokumen.preview', $dok->id) }}"
                                        target="_blank"
                                        class="btn btn-sm btn-outline-primary btn-action">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    <a href="{{ route('guru.dokumen.download', $dok->id) }}" 
+                                    <a href="{{ route('guru.dokumen.download', $dok->id) }}"
                                        class="btn btn-sm btn-outline-success btn-action">
                                         <i class="bi bi-download"></i>
                                     </a>
                                     <button class="btn btn-sm btn-outline-warning btn-action" onclick="editDokumen({{ $dok->id }})"><i class="bi bi-pencil"></i></button>
-                                    <button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteDokumen({{ $dok->id }})"><i class="bi bi-trash"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger btn-action btn-hapus-dokumen" data-id="{{ $dok->id }}"><i class="bi bi-trash"></i></button>
                                 </td>
                             </tr>
                             @empty
@@ -268,21 +269,27 @@
         <!-- PAGE: SISWA -->
         <div id="page-siswa" class="page-section">
             <div class="card">
-                <div class="card-header bg-white"><h6 class="mb-0"><i class="bi bi-people"></i> Data Siswa</h6></div>
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="bi bi-people"></i> Data Siswa</h6>
+                    <span class="badge bg-primary" id="totalSiswaBadge">{{ $data['siswa']->count() ?? 0 }} Siswa</span>
+                </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead><tr><th>NIS</th><th>Nama</th><th>Kelas</th><th>Total Dokumen</th><th>Aksi</th></tr></thead>
-                            <tbody>
+                            <tbody id="tableSiswaBody">
                                 @forelse($data['siswa'] ?? [] as $s)
-                                <tr>
+                                <tr data-id="{{ $s->id }}">
                                     <td>{{ $s->nis }}</td>
                                     <td>{{ $s->nama }}</td>
                                     <td>{{ $s->kelas->nama_kelas ?? '-' }}</td>
-                                    <td>{{ $s->dokumen->count() }}</td>
+                                    <td><span class="badge bg-info" id="dokCount-{{ $s->id }}">{{ $s->dokumen->count() }}</span></td>
                                     <td>
-                                        <button class="btn btn-sm btn-primary" onclick="uploadForSiswa({{ $s->id }})">
+                                        <button class="btn btn-sm btn-primary btn-upload-siswa" data-id="{{ $s->id }}" data-nama="{{ $s->nama }}">
                                             <i class="bi bi-upload"></i> Upload
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-info btn-detail-siswa" data-id="{{ $s->id }}">
+                                            <i class="bi bi-eye"></i>
                                         </button>
                                     </td>
                                 </tr>
@@ -301,12 +308,12 @@
             <div class="card">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center">
                     <h6 class="mb-0"><i class="bi bi-envelope-paper"></i> Request Dokumen dari Siswa</h6>
-                    <span class="badge bg-primary">{{ $data['request_count'] ?? 0 }} Menunggu</span>
+                    <span class="badge bg-primary" id="requestCountBadge">{{ $data['request_count'] ?? 0 }} Menunggu</span>
                 </div>
-                <div class="card-body">
+                <div class="card-body" id="requestListBody">
                     @if(isset($data['requests']) && $data['requests']->count() > 0)
                         @foreach($data['requests'] as $req)
-                        <div class="request-card {{ $req->status }}">
+                        <div class="request-card {{ $req->status }}" id="req-card-{{ $req->id }}">
                             <div class="request-info">
                                 <div>
                                     <h6 class="mb-1">{{ $req->judul }}</h6>
@@ -321,12 +328,12 @@
                                         <p class="mt-2 mb-0 small text-muted"><i class="bi bi-chat"></i> {{ $req->keterangan }}</p>
                                     @endif
                                 </div>
-                                <div>
-                                    <span class="badge-request-status {{ $req->status }}">
+                                <div class="text-end">
+                                    <span class="badge-request-status {{ $req->status }}" id="req-badge-{{ $req->id }}">
                                         {{ $req->status == 'pending' ? 'Menunggu' : ($req->status == 'approved' ? 'Disetujui' : 'Ditolak') }}
                                     </span>
                                     @if($req->status == 'pending')
-                                        <div class="mt-2">
+                                        <div class="mt-2" id="req-actions-{{ $req->id }}">
                                             <button class="btn btn-sm btn-success" onclick="processRequest({{ $req->id }}, 'approved')"><i class="bi bi-check"></i> Setujui</button>
                                             <button class="btn btn-sm btn-danger" onclick="processRequest({{ $req->id }}, 'rejected')"><i class="bi bi-x"></i> Tolak</button>
                                             <button class="btn btn-sm btn-primary" onclick="uploadForRequest({{ $req->id }})"><i class="bi bi-upload"></i> Upload</button>
@@ -338,7 +345,7 @@
                                     @if($req->status == 'approved')
                                         <div class="mt-2">
                                             <small class="text-success">
-                                                <i class="bi bi-check-circle"></i> Disetujui 
+                                                <i class="bi bi-check-circle"></i> Disetujui
                                                 @if($req->processed_at) pada {{ $req->processed_at->format('d M Y H:i') }} @endif
                                             </small>
                                         </div>
@@ -349,7 +356,7 @@
                         @endforeach
                         {{ $data['requests']->links() }}
                     @else
-                        <div class="text-center text-muted py-4">
+                        <div class="text-center text-muted py-4" id="emptyRequest">
                             <i class="bi bi-inbox fs-1 d-block mb-2"></i>
                             Belum ada request dari siswa
                         </div>
@@ -413,7 +420,7 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Pilih Siswa <span class="text-danger">*</span></label>
-                                <select name="siswa_id" class="form-control" required>
+                                <select name="siswa_id" id="uploadSiswaSelect" class="form-control" required>
                                     <option value="">Pilih Siswa</option>
                                     @foreach($data['siswa'] ?? [] as $s)
                                     <option value="{{ $s->id }}">{{ $s->nama }} ({{ $s->nis }})</option>
@@ -436,6 +443,7 @@
                                 <label class="form-label fw-bold">Keterangan</label>
                                 <textarea name="keterangan" class="form-control" rows="2"></textarea>
                             </div>
+                            <div class="alert alert-danger d-none" id="uploadError"></div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -499,6 +507,7 @@
                             </div>
                         </div>
                         <input type="hidden" name="request_id" id="requestId">
+                        <div class="alert alert-danger d-none" id="requestError"></div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -523,7 +532,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // NAVIGASI
+        const CSRF = document.querySelector('meta[name="csrf-token"]').content;
+
+        // ============ NAVIGASI ============
         document.querySelectorAll('.sidebar .nav-link').forEach(link => {
             link.addEventListener('click', function() {
                 document.querySelectorAll('.sidebar .nav-link').forEach(l => l.classList.remove('active'));
@@ -536,7 +547,7 @@
             });
         });
 
-        // FILTER
+        // ============ FILTER ============
         document.querySelectorAll('.btn-filter').forEach(btn => {
             btn.addEventListener('click', function() {
                 const parent = this.closest('.filter-section');
@@ -564,7 +575,7 @@
             });
         });
 
-        // SEARCH
+        // ============ SEARCH ============
         document.getElementById('searchDokumen')?.addEventListener('keyup', function() {
             const search = this.value.toLowerCase();
             document.querySelectorAll('#dokumenBody tr').forEach(row => {
@@ -572,98 +583,7 @@
             });
         });
 
-        // SUBMIT FORM (AJAX)
-        document.getElementById('uploadForm')?.addEventListener('submit', function(e) {
-            e.preventDefault();
-            submitForm(this);
-        });
-        document.getElementById('uploadRequestForm')?.addEventListener('submit', function(e) {
-            e.preventDefault();
-            submitForm(this);
-        });
-
-        function submitForm(form) {
-            const formData = new FormData(form);
-            const submitBtn = form.querySelector('button[type="submit"]');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Uploading...';
-            
-            fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showToast('success', data.message);
-                    setTimeout(() => location.reload(), 1500);
-                } else {
-                    showToast('danger', data.message || 'Gagal upload');
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="bi bi-cloud-upload"></i> Upload';
-                }
-            })
-            .catch(error => {
-                showToast('danger', 'Terjadi kesalahan');
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="bi bi-cloud-upload"></i> Upload';
-            });
-        }
-
-        // PROCESS REQUEST
-        function processRequest(id, status) {
-            if (!confirm('Yakin ingin ' + (status === 'approved' ? 'menyetujui' : 'menolak') + ' request ini?')) return;
-            const formData = new FormData();
-            formData.append('status', status);
-            if (status === 'rejected') {
-                const alasan = prompt('Masukkan alasan penolakan:');
-                if (!alasan) return;
-                formData.append('alasan', alasan);
-            }
-            fetch('/guru/request/' + id + '/process', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showToast('success', data.message);
-                    setTimeout(() => location.reload(), 1500);
-                } else {
-                    showToast('danger', data.message || 'Gagal memproses');
-                }
-            })
-            .catch(error => showToast('danger', 'Terjadi kesalahan'));
-        }
-
-        // UPLOAD FOR REQUEST
-        function uploadForRequest(id) {
-            fetch('/guru/request/' + id + '/detail')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const req = data.request;
-                        document.getElementById('requestId').value = req.id;
-                        document.getElementById('requestJudul').value = req.judul;
-                        document.getElementById('requestKategori').value = req.kategori_id;
-                        document.getElementById('requestSiswa').value = req.siswa_id;
-                        new bootstrap.Modal(document.getElementById('uploadRequestModal')).show();
-                    } else {
-                        showToast('danger', data.message || 'Gagal mengambil data');
-                    }
-                })
-                .catch(error => showToast('danger', 'Terjadi kesalahan'));
-        }
-
-        // TOAST
+        // ============ TOAST ============
         function showToast(type, message) {
             const toast = document.getElementById('liveToast');
             const colors = {'success': '#d4edda', 'danger': '#f8d7da', 'warning': '#fff3cd', 'info': '#d1ecf1'};
@@ -672,13 +592,353 @@
             new bootstrap.Toast(toast).show();
         }
 
-        function editDokumen(id) { showToast('info', 'Fitur edit dokumen sedang dikembangkan'); }
-        function deleteDokumen(id) { if (confirm('Yakin ingin menghapus dokumen ini?')) showToast('warning', 'Fitur hapus dokumen sedang dikembangkan'); }
-        function uploadForSiswa(id) {
-            const select = document.querySelector('#uploadForm select[name="siswa_id"]');
-            if (select) { select.value = id; new bootstrap.Modal(document.getElementById('uploadModal')).show(); }
+        // ============ UPLOAD DOKUMEN (LIVE) ============
+        document.getElementById('uploadForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const form = this;
+            const formData = new FormData(form);
+            const errorBox = document.getElementById('uploadError');
+            const submitBtn = form.querySelector('button[type="submit"]');
+
+            errorBox.classList.add('d-none');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Uploading...';
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': CSRF,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    let msg = result.message || 'Gagal upload.';
+                    if (result.errors) msg = Object.values(result.errors).flat().join('\n');
+                    errorBox.textContent = msg;
+                    errorBox.classList.remove('d-none');
+                    return;
+                }
+
+                // ===== LIVE UPDATE =====
+                const d = result.dokumen;
+                const tbody = document.getElementById('dokumenBody');
+
+                // Hapus empty state
+                if (tbody.querySelector('td[colspan]')) tbody.innerHTML = '';
+
+                const row = `
+                    <tr data-id="${d.id}">
+                        <td><span class="fw-bold">#${d.id}</span></td>
+                        <td>${d.judul}</td>
+                        <td>${d.siswa ? d.siswa.nama : '-'}</td>
+                        <td>${d.siswa && d.siswa.kelas ? d.siswa.kelas.nama_kelas : '-'}</td>
+                        <td><span class="badge-category">${d.kategori ? d.kategori.nama_kategori : '-'}</span></td>
+                        <td>
+                            <span class="badge-status ${d.status === 'aktif' ? 'verified' : 'pending'}">
+                                ${d.status === 'aktif' ? 'Terverifikasi' : 'Menunggu'}
+                            </span>
+                        </td>
+                        <td>${new Date(d.created_at).toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'})}</td>
+                        <td>
+                            <a href="/guru/dokumen/preview/${d.id}" target="_blank" class="btn btn-sm btn-outline-primary btn-action"><i class="bi bi-eye"></i></a>
+                            <a href="/guru/dokumen/download/${d.id}" class="btn btn-sm btn-outline-success btn-action"><i class="bi bi-download"></i></a>
+                            <button class="btn btn-sm btn-outline-warning btn-action" onclick="editDokumen(${d.id})"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-outline-danger btn-action btn-hapus-dokumen" data-id="${d.id}"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('afterbegin', row);
+
+                // Update counter dokumen siswa
+                const badge = document.getElementById('dokCount-' + d.siswa_id);
+                if (badge) badge.textContent = parseInt(badge.textContent) + 1;
+
+                // Update statistik
+                const statDok = document.getElementById('statDokumen');
+                const statVerif = document.getElementById('statTerverifikasi');
+                const statMen = document.getElementById('statMenunggu');
+                if (statDok) statDok.textContent = parseInt(statDok.textContent) + 1;
+                if (d.status === 'aktif' && statVerif) statVerif.textContent = parseInt(statVerif.textContent) + 1;
+                if (d.status === 'pending' && statMen) statMen.textContent = parseInt(statMen.textContent) + 1;
+
+                form.reset();
+                bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide();
+                showToast('success', result.message || 'Dokumen berhasil diunggah.');
+
+            } catch (err) {
+                errorBox.textContent = 'Gagal: ' + err.message;
+                errorBox.classList.remove('d-none');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-cloud-upload"></i> Upload';
+            }
+        });
+
+        // ============ UPLOAD UNTUK REQUEST (LIVE) ============
+        document.getElementById('uploadRequestForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const form = this;
+            const formData = new FormData(form);
+            const errorBox = document.getElementById('requestError');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const requestId = document.getElementById('requestId').value;
+
+            errorBox.classList.add('d-none');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Uploading...';
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': CSRF,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    let msg = result.message || 'Gagal upload.';
+                    if (result.errors) msg = Object.values(result.errors).flat().join('\n');
+                    errorBox.textContent = msg;
+                    errorBox.classList.remove('d-none');
+                    return;
+                }
+
+                // ===== LIVE UPDATE =====
+                const d = result.dokumen;
+                const tbody = document.getElementById('dokumenBody');
+                if (tbody.querySelector('td[colspan]')) tbody.innerHTML = '';
+
+                const row = `
+                    <tr data-id="${d.id}">
+                        <td><span class="fw-bold">#${d.id}</span></td>
+                        <td>${d.judul}</td>
+                        <td>${d.siswa ? d.siswa.nama : '-'}</td>
+                        <td>${d.siswa && d.siswa.kelas ? d.siswa.kelas.nama_kelas : '-'}</td>
+                        <td><span class="badge-category">${d.kategori ? d.kategori.nama_kategori : '-'}</span></td>
+                        <td>
+                            <span class="badge-status ${d.status === 'aktif' ? 'verified' : 'pending'}">
+                                ${d.status === 'aktif' ? 'Terverifikasi' : 'Menunggu'}
+                            </span>
+                        </td>
+                        <td>${new Date(d.created_at).toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'})}</td>
+                        <td>
+                            <a href="/guru/dokumen/preview/${d.id}" target="_blank" class="btn btn-sm btn-outline-primary btn-action"><i class="bi bi-eye"></i></a>
+                            <a href="/guru/dokumen/download/${d.id}" class="btn btn-sm btn-outline-success btn-action"><i class="bi bi-download"></i></a>
+                            <button class="btn btn-sm btn-outline-warning btn-action" onclick="editDokumen(${d.id})"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-outline-danger btn-action btn-hapus-dokumen" data-id="${d.id}"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('afterbegin', row);
+
+                // Update counter dokumen siswa
+                const badge = document.getElementById('dokCount-' + d.siswa_id);
+                if (badge) badge.textContent = parseInt(badge.textContent) + 1;
+
+                // Update statistik
+                const statDok = document.getElementById('statDokumen');
+                if (statDok) statDok.textContent = parseInt(statDok.textContent) + 1;
+
+                // Update request card status → selesai
+                const reqCard = document.getElementById('req-card-' + requestId);
+                if (reqCard) {
+                    reqCard.classList.remove('pending');
+                    reqCard.classList.add('approved');
+                    const badgeReq = document.getElementById('req-badge-' + requestId);
+                    if (badgeReq) {
+                        badgeReq.className = 'badge-request-status approved';
+                        badgeReq.textContent = 'Disetujui';
+                    }
+                    const actions = document.getElementById('req-actions-' + requestId);
+                    if (actions) actions.remove();
+                }
+
+                // Update counter request
+                const reqBadge = document.getElementById('requestCountBadge');
+                const reqSideBadge = document.getElementById('requestBadge');
+                if (reqBadge) reqBadge.textContent = (parseInt(reqBadge.textContent) - 1) + ' Menunggu';
+                if (reqSideBadge) {
+                    const val = parseInt(reqSideBadge.textContent) - 1;
+                    if (val <= 0) reqSideBadge.remove();
+                    else reqSideBadge.textContent = val;
+                }
+
+                form.reset();
+                bootstrap.Modal.getInstance(document.getElementById('uploadRequestModal')).hide();
+                showToast('success', 'Dokumen berhasil diunggah & request selesai.');
+
+            } catch (err) {
+                errorBox.textContent = 'Gagal: ' + err.message;
+                errorBox.classList.remove('d-none');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-cloud-upload"></i> Upload & Selesaikan';
+            }
+        });
+
+        // ============ PROCESS REQUEST (LIVE) ============
+        async function processRequest(id, status) {
+            if (!confirm('Yakin ingin ' + (status === 'approved' ? 'menyetujui' : 'menolak') + ' request ini?')) return;
+
+            const formData = new FormData();
+            formData.append('status', status);
+            formData.append('_token', CSRF);
+
+            if (status === 'rejected') {
+                const alasan = prompt('Masukkan alasan penolakan:');
+                if (!alasan) return;
+                formData.append('alasan', alasan);
+            }
+
+            try {
+                const response = await fetch('/guru/request/' + id + '/process', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': CSRF,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    showToast('danger', result.message || 'Gagal memproses');
+                    return;
+                }
+
+                // ===== LIVE UPDATE =====
+                const reqCard = document.getElementById('req-card-' + id);
+                if (reqCard) {
+                    reqCard.classList.remove('pending');
+                    reqCard.classList.add(status);
+                    const badge = document.getElementById('req-badge-' + id);
+                    if (badge) {
+                        badge.className = 'badge-request-status ' + status;
+                        badge.textContent = status === 'approved' ? 'Disetujui' : 'Ditolak';
+                    }
+                    const actions = document.getElementById('req-actions-' + id);
+                    if (actions) actions.remove();
+                }
+
+                // Update counter
+                const reqBadge = document.getElementById('requestCountBadge');
+                const reqSideBadge = document.getElementById('requestBadge');
+                if (reqBadge) reqBadge.textContent = (parseInt(reqBadge.textContent) - 1) + ' Menunggu';
+                if (reqSideBadge) {
+                    const val = parseInt(reqSideBadge.textContent) - 1;
+                    if (val <= 0) reqSideBadge.remove();
+                    else reqSideBadge.textContent = val;
+                }
+
+                showToast('success', result.message || 'Request berhasil diproses.');
+
+            } catch (err) {
+                showToast('danger', 'Gagal: ' + err.message);
+            }
         }
 
+        // ============ UPLOAD FOR REQUEST ============
+        async function uploadForRequest(id) {
+            try {
+                const response = await fetch('/guru/request/' + id + '/detail', {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    const req = data.request;
+                    document.getElementById('requestId').value = req.id;
+                    document.getElementById('requestJudul').value = req.judul;
+                    document.getElementById('requestKategori').value = req.kategori_id;
+                    document.getElementById('requestSiswa').value = req.siswa_id;
+                    new bootstrap.Modal(document.getElementById('uploadRequestModal')).show();
+                } else {
+                    showToast('danger', data.message || 'Gagal mengambil data');
+                }
+            } catch (err) {
+                showToast('danger', 'Terjadi kesalahan');
+            }
+        }
+
+        // ============ UPLOAD PER SISWA (dari tabel siswa) ============
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.btn-upload-siswa');
+            if (!btn) return;
+
+            const siswaId = btn.dataset.id;
+            const siswaNama = btn.dataset.nama;
+
+            // Buka modal upload & otomatis pilih siswa
+            const select = document.getElementById('uploadSiswaSelect');
+            select.value = siswaId;
+
+            // Set judul otomatis
+            const judul = document.querySelector('#uploadForm input[name="judul"]');
+            if (judul && !judul.value) judul.value = 'Dokumen ' + siswaNama;
+
+            new bootstrap.Modal(document.getElementById('uploadModal')).show();
+        });
+
+        // ============ DETAIL SISWA (bonus) ============
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.btn-detail-siswa');
+            if (!btn) return;
+            showToast('info', 'Detail siswa sedang dikembangkan.');
+        });
+
+        // ============ HAPUS DOKUMEN (LIVE) ============
+        document.addEventListener('click', async function(e) {
+            const btn = e.target.closest('.btn-hapus-dokumen');
+            if (!btn) return;
+            if (!confirm('Yakin ingin menghapus dokumen ini?')) return;
+
+            const id = btn.dataset.id;
+            const tr = btn.closest('tr');
+
+            try {
+                const response = await fetch('/guru/dokumen/' + id, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': CSRF,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    showToast('danger', result.message || 'Gagal menghapus.');
+                    return;
+                }
+
+                tr.remove();
+                showToast('success', result.message || 'Dokumen berhasil dihapus.');
+
+            } catch (err) {
+                showToast('danger', 'Gagal: ' + err.message);
+            }
+        });
+
+        // ============ PLACEHOLDER ============
+        function editDokumen(id) { showToast('info', 'Fitur edit dokumen sedang dikembangkan'); }
+
+        // ============ FLASH MESSAGE ============
         @if(session('success')) showToast('success', '{{ session('success') }}'); @endif
         @if(session('error')) showToast('danger', '{{ session('error') }}'); @endif
     </script>

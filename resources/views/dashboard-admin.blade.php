@@ -93,7 +93,7 @@
         <div class="topbar">
             <div>
                 <h5><i class="bi bi-grid"></i> <span id="page-title">Dashboard</span></h5>
-                <small class="text-muted">SMK Amadeo - {{ date('l, d F Y') }}</small>
+                <small class="text-muted">SMK 5 SURAKARTA - {{ date('l, d F Y') }}</small>
             </div>
             <div class="user-info">
                 <span class="text-muted small">{{ $user->nama }}</span>
@@ -146,7 +146,7 @@
                     <div class="stat-card"><div class="d-flex justify-content-between"><span class="label">Total Guru</span><span class="number">{{ $data['total_guru'] ?? 0 }}</span></div></div>
                 </div>
                 <div class="col-md-6">
-                    <div class="stat-card"><div class="d-flex justify-content-between"><span class="label">Total Kelas</span><span class="number">{{ $data['total_kelas'] ?? 0 }}</span></div></div>
+                    <div class="stat-card"><div class="d-flex justify-content-between"><span class="label">Total Kelas</span><span class="number" id="totalKelas">{{ $data['total_kelas'] ?? 0 }}</span></div></div>
                 </div>
             </div>
         </div>
@@ -213,13 +213,12 @@
                                 </td>
                                 <td>{{ $dok->created_at->format('d M Y') }}</td>
                                 <td>
-                                    {{-- ✅ PERBAIKAN 1: Tombol Lihat & Download --}}
-                                    <a href="{{ route('dokumen.preview', $dok->id) }}" 
+                                    <a href="{{ route('dokumen.preview', $dok->id) }}"
                                        target="_blank"
                                        class="btn btn-sm btn-outline-primary btn-action">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    <a href="{{ route('dokumen.download', $dok->id) }}" 
+                                    <a href="{{ route('dokumen.download', $dok->id) }}"
                                        class="btn btn-sm btn-outline-success btn-action">
                                         <i class="bi bi-download"></i>
                                     </a>
@@ -256,16 +255,16 @@
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="tableSiswaBody">
                                 @forelse($data['siswa'] ?? [] as $s)
-                                <tr>
+                                <tr data-id="{{ $s->id }}">
                                     <td>{{ $s->nis }}</td>
                                     <td>{{ $s->nama }}</td>
                                     <td><span class="badge-kelas">{{ $s->kelas->nama_kelas ?? 'Belum Punya Kelas' }}</span></td>
                                     <td>{{ $s->dokumen->count() }}</td>
                                     <td>
                                         <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
-                                        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                        <button class="btn btn-sm btn-outline-danger btn-hapus-user" data-id="{{ $s->id }}"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
                                 @empty
@@ -300,9 +299,9 @@
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="tableGuruBody">
                                 @forelse($data['guru'] ?? [] as $g)
-                                <tr>
+                                <tr data-id="{{ $g->id }}">
                                     <td>#{{ $g->id }}</td>
                                     <td>
                                         <span class="avatar-sm me-2">{{ substr($g->nama, 0, 2) }}</span>
@@ -322,8 +321,8 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-primary btn-kelas" 
-                                                data-bs-toggle="modal" 
+                                        <button class="btn btn-sm btn-primary btn-kelas"
+                                                data-bs-toggle="modal"
                                                 data-bs-target="#arahkanModal"
                                                 data-id="{{ $g->id }}"
                                                 data-nama="{{ $g->nama }}"
@@ -331,7 +330,7 @@
                                             <i class="bi bi-arrow-right"></i> Arahkan Kelas
                                         </button>
                                         <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
-                                        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                        <button class="btn btn-sm btn-outline-danger btn-hapus-user" data-id="{{ $g->id }}"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
                                 @empty
@@ -367,13 +366,13 @@
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="tableKelasBody">
                                 @forelse($data['kelas'] ?? [] as $k)
-                                <tr>
+                                <tr data-id="{{ $k->id }}">
                                     <td>#{{ $k->id }}</td>
                                     <td><strong>{{ $k->nama_kelas }}</strong></td>
                                     <td>{{ $k->tingkat }}</td>
-                                    <td>{{ $k->jurusan }}</td>
+                                    <td><span class="badge bg-secondary">{{ $k->jurusan }}</span></td>
                                     <td><span class="badge bg-info">{{ $k->siswa->count() }}</span></td>
                                     <td>
                                         @if($k->waliKelas)
@@ -383,8 +382,16 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
-                                        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                        <button class="btn btn-sm btn-outline-warning btn-edit-kelas"
+                                                data-id="{{ $k->id }}"
+                                                data-nama="{{ $k->nama_kelas }}"
+                                                data-tingkat="{{ $k->tingkat }}"
+                                                data-jurusan="{{ $k->jurusan }}"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#kelasEditModal">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger btn-hapus-kelas" data-id="{{ $k->id }}"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
                                 @empty
@@ -426,7 +433,7 @@
         </div>
     </div>
 
-    <!-- ============ MODAL UPLOAD DOKUMEN (PERBAIKAN 2) ============ -->
+    <!-- ============ MODAL UPLOAD DOKUMEN ============ -->
     <div class="modal fade" id="uploadModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -505,7 +512,7 @@
                     <h5 class="modal-title"><i class="bi bi-person-plus"></i> Tambah Guru</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <form action="{{ route('users.store') }}" method="POST">
+                <form id="formTambahGuru" action="{{ route('users.store') }}" method="POST">
                     @csrf
                     <div class="modal-body">
                         <input type="hidden" name="role" value="guru">
@@ -519,7 +526,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Password</label>
-                            <input type="password" name="password" class="form-control" placeholder="Minimal 8 karakter" required>
+                            <input type="password" name="password" class="form-control" placeholder="Minimal 8 karakter" minlength="8" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Arahkan ke Kelas</label>
@@ -531,6 +538,7 @@
                             </select>
                             <small class="text-muted">Pilih kelas yang akan diampu oleh guru ini</small>
                         </div>
+                        <div class="alert alert-danger d-none" id="errorGuru"></div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -582,7 +590,7 @@
                     <h5 class="modal-title"><i class="bi bi-person-plus"></i> Tambah Siswa</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <form action="{{ route('users.store') }}" method="POST">
+                <form id="formTambahSiswa" action="{{ route('users.store') }}" method="POST">
                     @csrf
                     <div class="modal-body">
                         <input type="hidden" name="role" value="siswa">
@@ -596,7 +604,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Password</label>
-                            <input type="password" name="password" class="form-control" placeholder="Minimal 8 karakter" required>
+                            <input type="password" name="password" class="form-control" placeholder="Minimal 8 karakter" minlength="8" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Kelas</label>
@@ -607,6 +615,7 @@
                                 @endforeach
                             </select>
                         </div>
+                        <div class="alert alert-danger d-none" id="errorSiswa"></div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -625,15 +634,15 @@
                     <h5 class="modal-title"><i class="bi bi-building-add"></i> Tambah Kelas</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <form action="{{ route('kelas.store') }}" method="POST">
+                <form id="formTambahKelas" action="{{ route('kelas.store') }}" method="POST">
                     @csrf
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Nama Kelas</label>
+                            <label class="form-label fw-bold">Nama Kelas <span class="text-danger">*</span></label>
                             <input type="text" name="nama_kelas" class="form-control" placeholder="Contoh: XII RPL C" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Tingkat</label>
+                            <label class="form-label fw-bold">Tingkat <span class="text-danger">*</span></label>
                             <select name="tingkat" class="form-control" required>
                                 <option value="">Pilih Tingkat</option>
                                 <option value="X">X</option>
@@ -642,19 +651,96 @@
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Jurusan</label>
+                            <label class="form-label fw-bold">Jurusan <span class="text-danger">*</span></label>
                             <select name="jurusan" class="form-control" required>
                                 <option value="">Pilih Jurusan</option>
-                                <option value="RPL">RPL</option>
-                                <option value="TKJ">TKJ</option>
-                                <option value="MM">MM</option>
-                                <option value="BC">BC</option>
+                                <optgroup label="── Rumpun Teknologi Informasi ──">
+                                    <option value="RPL">RPL — Rekayasa Perangkat Lunak</option>
+                                    <option value="TKJ">TKJ — Teknik Komputer & Jaringan</option>
+                                    <option value="MM">MM — Multimedia</option>
+                                </optgroup>
+                                <optgroup label="── Rumpun Teknik Mesin & Otomotif ──">
+                                    <option value="Otomasi">Otomasi — Teknik Otomasi Industri</option>
+                                    <option value="Mesin">Mesin — Teknik Pemesinan</option>
+                                    <option value="Otomotif">Otomotif — Teknik Otomotif</option>
+                                </optgroup>
+                                <optgroup label="── Rumpun Bangunan & Elektro ──">
+                                    <option value="DPIB">DPIB — Desain Pemodelan & Info Bangunan</option>
+                                    <option value="TKP">TKP — Teknik Konstruksi & Perumahan</option>
+                                    <option value="Elektronika">Elektronika — Teknik Elektronika</option>
+                                    <option value="Listrik">Listrik — Teknik Instalasi Listrik</option>
+                                </optgroup>
+                                <optgroup label="── Lainnya ──">
+                                    <option value="BC">BC — Broadcasting</option>
+                                </optgroup>
                             </select>
                         </div>
+                        <div class="alert alert-danger d-none" id="errorKelas"></div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                         <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ MODAL EDIT KELAS ============ -->
+    <div class="modal fade" id="kelasEditModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Edit Kelas</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="formEditKelas" action="" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nama Kelas <span class="text-danger">*</span></label>
+                            <input type="text" name="nama_kelas" id="editNamaKelas" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tingkat <span class="text-danger">*</span></label>
+                            <select name="tingkat" id="editTingkat" class="form-control" required>
+                                <option value="">Pilih Tingkat</option>
+                                <option value="X">X</option>
+                                <option value="XI">XI</option>
+                                <option value="XII">XII</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Jurusan <span class="text-danger">*</span></label>
+                            <select name="jurusan" id="editJurusan" class="form-control" required>
+                                <option value="">Pilih Jurusan</option>
+                                <optgroup label="── Rumpun Teknologi Informasi ──">
+                                    <option value="RPL">RPL — Rekayasa Perangkat Lunak</option>
+                                    <option value="TKJ">TKJ — Teknik Komputer & Jaringan</option>
+                                    <option value="MM">MM — Multimedia</option>
+                                </optgroup>
+                                <optgroup label="── Rumpun Teknik Mesin & Otomotif ──">
+                                    <option value="Otomasi">Otomasi — Teknik Otomasi Industri</option>
+                                    <option value="Mesin">Mesin — Teknik Pemesinan</option>
+                                    <option value="Otomotif">Otomotif — Teknik Otomotif</option>
+                                </optgroup>
+                                <optgroup label="── Rumpun Bangunan & Elektro ──">
+                                    <option value="DPIB">DPIB — Desain Pemodelan & Info Bangunan</option>
+                                    <option value="TKP">TKP — Teknik Konstruksi & Perumahan</option>
+                                    <option value="Elektronika">Elektronika — Teknik Elektronika</option>
+                                    <option value="Listrik">Listrik — Teknik Instalasi Listrik</option>
+                                </optgroup>
+                                <optgroup label="── Lainnya ──">
+                                    <option value="BC">BC — Broadcasting</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="alert alert-danger d-none" id="errorEditKelas"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Update</button>
                     </div>
                 </form>
             </div>
@@ -675,6 +761,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        const CSRF = document.querySelector('meta[name="csrf-token"]').content;
+
         // ============ NAVIGASI ============
         document.querySelectorAll('.sidebar .nav-link').forEach(link => {
             link.addEventListener('click', function() {
@@ -697,24 +785,53 @@
             });
         });
 
-        // ============ MODAL ARAHKAN KELAS ============
-        document.querySelectorAll('[data-bs-target="#arahkanModal"]').forEach(btn => {
+        // ============ TOAST ============
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('liveToast');
+            const body = document.getElementById('toastMessage');
+            const colors = {
+                'success': '#d4edda',
+                'danger': '#f8d7da',
+                'warning': '#fff3cd',
+                'info': '#d1ecf1'
+            };
+            toast.querySelector('.toast-header').style.backgroundColor = colors[type] || '#fff';
+            body.textContent = message;
+            new bootstrap.Toast(toast).show();
+        }
+
+        // ============ FLASH MESSAGE ============
+        @if(session('success'))
+            showToast('{{ session('success') }}', 'success');
+        @endif
+        @if(session('error'))
+            showToast('{{ session('error') }}', 'danger');
+        @endif
+
+        // ========================================
+        // MODAL ARAHKAN KELAS
+        // ========================================
+        function bindArahkanButton(btn) {
+            if (!btn) return;
             btn.addEventListener('click', function() {
                 const id = this.dataset.id;
                 const nama = this.dataset.nama;
                 const kelasId = this.dataset.kelas || '';
-                
+
                 document.getElementById('guruNama').textContent = nama;
-                
+
                 const form = document.getElementById('arahkanForm');
                 form.action = '/users/' + id;
-                
-                const select = document.getElementById('arahkanKelas');
-                select.value = kelasId;
-            });
-        });
 
-        // ============ FILTER DOKUMEN ============
+                document.getElementById('arahkanKelas').value = kelasId;
+            });
+        }
+
+        document.querySelectorAll('[data-bs-target="#arahkanModal"]').forEach(bindArahkanButton);
+
+        // ========================================
+        // FILTER DOKUMEN
+        // ========================================
         document.querySelectorAll('.btn-filter').forEach(btn => {
             btn.addEventListener('click', function() {
                 const parent = this.closest('.filter-section');
@@ -724,7 +841,7 @@
                 const filter = this.dataset.filter;
                 const status = this.dataset.status;
                 const rows = document.querySelectorAll('#dokumenBody tr');
-                
+
                 rows.forEach(row => {
                     let show = true;
                     if (filter && filter !== 'all') {
@@ -753,28 +870,451 @@
             });
         });
 
-        // ============ TOAST ============
-        function showToast(message, type = 'info') {
-            const toast = document.getElementById('liveToast');
-            const body = document.getElementById('toastMessage');
-            const colors = {
-                'success': '#d4edda',
-                'danger': '#f8d7da',
-                'warning': '#fff3cd',
-                'info': '#d1ecf1'
-            };
-            toast.querySelector('.toast-header').style.backgroundColor = colors[type] || '#fff';
-            body.textContent = message;
-            new bootstrap.Toast(toast).show();
+        // ========================================
+        // AJAX TAMBAH GURU
+        // ========================================
+        document.getElementById('formTambahGuru')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const form = this;
+            const formData = new FormData(form);
+            const errorBox = document.getElementById('errorGuru');
+            const submitBtn = form.querySelector('button[type="submit"]');
+
+            errorBox.classList.add('d-none');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Menyimpan...';
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': CSRF,
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    let msg = result.message || 'Terjadi kesalahan.';
+                    if (result.errors) msg = Object.values(result.errors).flat().join('\n');
+                    errorBox.textContent = msg;
+                    errorBox.classList.remove('d-none');
+                    return;
+                }
+
+                const tbody = document.getElementById('tableGuruBody');
+                if (tbody.querySelector('td[colspan]')) tbody.innerHTML = '';
+
+                const u = result.user;
+                const kelasNama = u.kelas ? u.kelas.nama_kelas : null;
+
+                const row = `
+                    <tr data-id="${u.id}">
+                        <td>#${u.id}</td>
+                        <td>
+                            <span class="avatar-sm me-2">${u.nama.substring(0, 2).toUpperCase()}</span>
+                            ${u.nama}
+                        </td>
+                        <td>${u.email ?? '-'}</td>
+                        <td>${kelasNama
+                            ? `<span class="badge-kelas"><i class="bi bi-building"></i> ${kelasNama}</span>`
+                            : `<span class="text-muted">Belum diarahkan</span>`}
+                        </td>
+                        <td>
+                            <span class="badge ${u.kelas_id ? 'bg-success' : 'bg-warning'}">
+                                ${u.kelas_id ? 'Aktif' : 'Belum Dipetakan'}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-primary btn-kelas"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#arahkanModal"
+                                    data-id="${u.id}"
+                                    data-nama="${u.nama}"
+                                    data-kelas="${u.kelas_id ?? ''}">
+                                <i class="bi bi-arrow-right"></i> Arahkan Kelas
+                            </button>
+                            <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-outline-danger btn-hapus-user" data-id="${u.id}"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('afterbegin', row);
+                bindArahkanButton(tbody.querySelector('tr:first-child .btn-kelas'));
+
+                form.reset();
+                bootstrap.Modal.getInstance(document.getElementById('guruModal')).hide();
+                showToast(result.message, 'success');
+
+            } catch (err) {
+                errorBox.textContent = 'Gagal menyimpan: ' + err.message;
+                errorBox.classList.remove('d-none');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-save"></i> Simpan';
+            }
+        });
+
+        // ========================================
+        // AJAX TAMBAH SISWA
+        // ========================================
+        document.getElementById('formTambahSiswa')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const form = this;
+            const formData = new FormData(form);
+            const errorBox = document.getElementById('errorSiswa');
+            const submitBtn = form.querySelector('button[type="submit"]');
+
+            errorBox.classList.add('d-none');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Menyimpan...';
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': CSRF,
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    let msg = result.message || 'Terjadi kesalahan.';
+                    if (result.errors) msg = Object.values(result.errors).flat().join('\n');
+                    errorBox.textContent = msg;
+                    errorBox.classList.remove('d-none');
+                    return;
+                }
+
+                const tbody = document.getElementById('tableSiswaBody');
+                if (tbody.querySelector('td[colspan]')) tbody.innerHTML = '';
+
+                const u = result.user;
+                const kelasNama = u.kelas ? u.kelas.nama_kelas : 'Belum Punya Kelas';
+
+                const row = `
+                    <tr data-id="${u.id}">
+                        <td>${u.nis ?? '-'}</td>
+                        <td>${u.nama}</td>
+                        <td><span class="badge-kelas">${kelasNama}</span></td>
+                        <td>0</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-outline-danger btn-hapus-user" data-id="${u.id}"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('afterbegin', row);
+
+                form.reset();
+                bootstrap.Modal.getInstance(document.getElementById('siswaModal')).hide();
+                showToast(result.message, 'success');
+
+            } catch (err) {
+                errorBox.textContent = 'Gagal menyimpan: ' + err.message;
+                errorBox.classList.remove('d-none');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-save"></i> Simpan';
+            }
+        });
+
+        // ========================================
+        // AJAX ARAHKAN KELAS
+        // ========================================
+        document.getElementById('arahkanForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const form = this;
+            const formData = new FormData(form);
+            const submitBtn = form.querySelector('button[type="submit"]');
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Menyimpan...';
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': CSRF,
+                        'Accept': 'application/json',
+                        'X-HTTP-Method-Override': 'PUT'
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    showToast(result.message || 'Terjadi kesalahan.', 'danger');
+                    return;
+                }
+
+                const u = result.user;
+                const tr = document.querySelector(`#tableGuruBody tr[data-id="${u.id}"]`);
+                if (tr) {
+                    const kelasNama = u.kelas ? u.kelas.nama_kelas : null;
+                    tr.children[3].innerHTML = kelasNama
+                        ? `<span class="badge-kelas"><i class="bi bi-building"></i> ${kelasNama}</span>`
+                        : `<span class="text-muted">Belum diarahkan</span>`;
+                    tr.children[4].innerHTML = `
+                        <span class="badge ${u.kelas_id ? 'bg-success' : 'bg-warning'}">
+                            ${u.kelas_id ? 'Aktif' : 'Belum Dipetakan'}
+                        </span>
+                    `;
+                    const btn = tr.querySelector('.btn-kelas');
+                    if (btn) btn.dataset.kelas = u.kelas_id ?? '';
+                }
+
+                bootstrap.Modal.getInstance(document.getElementById('arahkanModal')).hide();
+                showToast(result.message, 'success');
+
+            } catch (err) {
+                showToast('Gagal menyimpan: ' + err.message, 'danger');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-save"></i> Simpan';
+            }
+        });
+
+        // ========================================
+        // AJAX HAPUS USER
+        // ========================================
+        document.addEventListener('click', async function(e) {
+            const btn = e.target.closest('.btn-hapus-user');
+            if (!btn) return;
+
+            if (!confirm('Yakin ingin menghapus user ini?')) return;
+
+            const id = btn.dataset.id;
+            const tr = btn.closest('tr');
+
+            try {
+                const response = await fetch('/users/' + id, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': CSRF,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    showToast(result.message || 'Gagal menghapus.', 'danger');
+                    return;
+                }
+
+                tr.remove();
+                showToast(result.message, 'success');
+
+            } catch (err) {
+                showToast('Gagal menghapus: ' + err.message, 'danger');
+            }
+        });
+
+        // ========================================
+        // AJAX TAMBAH KELAS
+        // ========================================
+        document.getElementById('formTambahKelas')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const form = this;
+            const formData = new FormData(form);
+            const errorBox = document.getElementById('errorKelas');
+            const submitBtn = form.querySelector('button[type="submit"]');
+
+            errorBox.classList.add('d-none');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Menyimpan...';
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': CSRF,
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    let msg = result.message || 'Terjadi kesalahan.';
+                    if (result.errors) msg = Object.values(result.errors).flat().join('\n');
+                    errorBox.textContent = msg;
+                    errorBox.classList.remove('d-none');
+                    return;
+                }
+
+                // Tambah baris ke tabel kelas
+                const tbody = document.getElementById('tableKelasBody');
+                if (tbody.querySelector('td[colspan]')) tbody.innerHTML = '';
+
+                const k = result.kelas;
+                const row = `
+                    <tr data-id="${k.id}">
+                        <td>#${k.id}</td>
+                        <td><strong>${k.nama_kelas}</strong></td>
+                        <td>${k.tingkat}</td>
+                        <td><span class="badge bg-secondary">${k.jurusan}</span></td>
+                        <td><span class="badge bg-info">0</span></td>
+                        <td><span class="text-muted">Belum ada wali kelas</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-warning btn-edit-kelas"
+                                    data-id="${k.id}"
+                                    data-nama="${k.nama_kelas}"
+                                    data-tingkat="${k.tingkat}"
+                                    data-jurusan="${k.jurusan}"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#kelasEditModal">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger btn-hapus-kelas" data-id="${k.id}"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('afterbegin', row);
+                bindEditKelas(tbody.querySelector('tr:first-child .btn-edit-kelas'));
+
+                // Update counter total kelas
+                const totalKelas = document.getElementById('totalKelas');
+                if (totalKelas) totalKelas.textContent = parseInt(totalKelas.textContent) + 1;
+
+                form.reset();
+                bootstrap.Modal.getInstance(document.getElementById('kelasModal')).hide();
+                showToast(result.message, 'success');
+
+            } catch (err) {
+                errorBox.textContent = 'Gagal: ' + err.message;
+                errorBox.classList.remove('d-none');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-save"></i> Simpan';
+            }
+        });
+
+        // ========================================
+        // AJAX EDIT KELAS
+        // ========================================
+        function bindEditKelas(btn) {
+            if (!btn) return;
+            btn.addEventListener('click', function() {
+                const id = this.dataset.id;
+                document.getElementById('editNamaKelas').value = this.dataset.nama;
+                document.getElementById('editTingkat').value = this.dataset.tingkat;
+                document.getElementById('editJurusan').value = this.dataset.jurusan;
+                document.getElementById('formEditKelas').action = '/kelas/' + id;
+            });
         }
 
-        // ============ FLASH MESSAGE ============
-        @if(session('success'))
-            showToast('{{ session('success') }}', 'success');
-        @endif
-        @if(session('error'))
-            showToast('{{ session('error') }}', 'danger');
-        @endif
+        document.querySelectorAll('.btn-edit-kelas').forEach(bindEditKelas);
+
+        document.getElementById('formEditKelas')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const form = this;
+            const formData = new FormData(form);
+            const errorBox = document.getElementById('errorEditKelas');
+            const submitBtn = form.querySelector('button[type="submit"]');
+
+            errorBox.classList.add('d-none');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Menyimpan...';
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': CSRF,
+                        'Accept': 'application/json',
+                        'X-HTTP-Method-Override': 'PUT'
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    let msg = result.message || 'Terjadi kesalahan.';
+                    if (result.errors) msg = Object.values(result.errors).flat().join('\n');
+                    errorBox.textContent = msg;
+                    errorBox.classList.remove('d-none');
+                    return;
+                }
+
+                // Update baris tabel
+                const k = result.kelas;
+                const tr = document.querySelector(`#tableKelasBody tr[data-id="${k.id}"]`);
+                if (tr) {
+                    tr.children[1].innerHTML = `<strong>${k.nama_kelas}</strong>`;
+                    tr.children[2].textContent = k.tingkat;
+                    tr.children[3].innerHTML = `<span class="badge bg-secondary">${k.jurusan}</span>`;
+                    const btn = tr.querySelector('.btn-edit-kelas');
+                    if (btn) {
+                        btn.dataset.nama = k.nama_kelas;
+                        btn.dataset.tingkat = k.tingkat;
+                        btn.dataset.jurusan = k.jurusan;
+                    }
+                }
+
+                bootstrap.Modal.getInstance(document.getElementById('kelasEditModal')).hide();
+                showToast(result.message, 'success');
+
+            } catch (err) {
+                errorBox.textContent = 'Gagal: ' + err.message;
+                errorBox.classList.remove('d-none');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-save"></i> Update';
+            }
+        });
+
+        // ========================================
+        // AJAX HAPUS KELAS
+        // ========================================
+        document.addEventListener('click', async function(e) {
+            const btn = e.target.closest('.btn-hapus-kelas');
+            if (!btn) return;
+            if (!confirm('Yakin ingin menghapus kelas ini?')) return;
+
+            const id = btn.dataset.id;
+            const tr = btn.closest('tr');
+
+            try {
+                const response = await fetch('/kelas/' + id, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': CSRF,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    showToast(result.message || 'Gagal menghapus.', 'danger');
+                    return;
+                }
+
+                tr.remove();
+
+                // Update counter total kelas
+                const totalKelas = document.getElementById('totalKelas');
+                if (totalKelas) totalKelas.textContent = Math.max(0, parseInt(totalKelas.textContent) - 1);
+
+                showToast(result.message, 'success');
+
+            } catch (err) {
+                showToast('Gagal: ' + err.message, 'danger');
+            }
+        });
     </script>
 </body>
 </html>

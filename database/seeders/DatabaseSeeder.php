@@ -50,7 +50,7 @@ class DatabaseSeeder extends Seeder
         // Buat Guru
         User::create([
             'nama' => 'Guru Wali Kelas',
-            'email' => 'guru@simad.com',
+            'email' => 'guru@smkn5ska.com',
             'password' => Hash::make('password'),
             'role' => 'guru',
             'kelas_id' => 1,

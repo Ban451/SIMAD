@@ -29,10 +29,29 @@
             border: none;
             padding: 12px;
             font-weight: 600;
+            transition: all 0.3s;
         }
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(26, 35, 126, 0.4);
+        }
+        .btn-back {
+            border: 2px solid #1a237e;
+            color: #1a237e;
+            padding: 12px;
+            font-weight: 600;
+            background: white;
+            border-radius: 8px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: block;
+            text-align: center;
+        }
+        .btn-back:hover {
+            background: #1a237e;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(26, 35, 126, 0.3);
         }
         .form-control:focus {
             border-color: #1a237e;
@@ -81,11 +100,11 @@
                                 <label for="login" class="form-label fw-bold">
                                     <i class="bi bi-person-badge"></i> Email / NIS
                                 </label>
-                                <input type="text" name="login" id="login" class="form-control" 
-                                    placeholder="Masukkan email (Guru/Admin) atau NIS (Siswa)" 
+                                <input type="text" name="login" id="login" class="form-control"
+                                    placeholder="Masukkan email (Guru/Admin) atau NIS (Siswa)"
                                     value="{{ old('login') }}" required autofocus>
                                 <small class="text-muted">
-                                    <i class="bi bi-info-circle"></i> 
+                                    <i class="bi bi-info-circle"></i>
                                     Guru/Admin: gunakan email | Siswa: gunakan NIS
                                 </small>
                             </div>
@@ -93,7 +112,7 @@
                                 <label for="password" class="form-label fw-bold">
                                     <i class="bi bi-lock"></i> Password
                                 </label>
-                                <input type="password" name="password" id="password" class="form-control" 
+                                <input type="password" name="password" id="password" class="form-control"
                                     placeholder="Masukkan password" required>
                             </div>
                             <div class="mb-3 form-check">
@@ -106,7 +125,12 @@
                         </form>
 
                         <hr class="my-4">
-                        <div class="text-center">
+
+                        <a href="{{ route('landing') }}" class="btn-back">
+                            <i class="bi bi-arrow-left"></i> Kembali ke Beranda
+                        </a>
+
+                        <div class="text-center mt-4">
                             <small class="text-muted">
                                 <i class="bi bi-building"></i> SMK Negeri 5 Surakarta • XII RPL C
                             </small>
