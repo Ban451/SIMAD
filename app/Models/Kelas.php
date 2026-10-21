@@ -17,18 +17,28 @@ class Kelas extends Model
         'jurusan',
     ];
 
+    /**
+     * Semua user (guru + siswa) yang terdaftar di kelas ini.
+     */
     public function users()
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(User::class, 'kelas_id');
     }
 
+    /**
+     * Siswa yang terdaftar di kelas ini.
+     */
     public function siswa()
     {
-        return $this->hasMany(User::class)->where('role', 'siswa');
+        return $this->hasMany(User::class, 'kelas_id')->where('role', 'siswa');
     }
 
+    /**
+     * Wali kelas (guru) untuk kelas ini.
+     * hasOne + where role=guru → hanya 1 guru per kelas.
+     */
     public function waliKelas()
     {
-        return $this->hasOne(User::class)->where('role', 'guru');
+        return $this->hasOne(User::class, 'kelas_id')->where('role', 'guru');
     }
 }

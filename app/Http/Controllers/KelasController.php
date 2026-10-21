@@ -122,30 +122,46 @@ class KelasController extends Controller
 
     /**
      * Delete kelas via AJAX.
+     *
+     * PERBAIKAN:
+     * - Relasi guru dicek lewat waliKelas (hasOne), bukan users()->where('role','guru')
+     *   karena model Kelas tidak punya relasi users().
+     * - Cek siswa pakai withCount agar 1 query saja.
+     * - Response tetap JSON sesuai frontend AJAX.
      */
     public function destroy($id)
     {
-        $kelas = Kelas::findOrFail($id);
+        $kelas = Kelas::withCount('siswa')->findOrFail($id);
 
-        if ($kelas->siswa()->count() > 0) {
+        // Cek siswa
+        if ($kelas->siswa_count > 0) {
             return response()->json([
                 'success' => false,
-                'message' => 'Kelas tidak dapat dihapus karena masih memiliki siswa.'
+                'message' => "Kelas \"{$kelas->nama_kelas}\" tidak dapat dihapus karena masih memiliki {$kelas->siswa_count} siswa. Pindahkan siswa terlebih dahulu."
             ], 422);
         }
 
-        if ($kelas->users()->where('role', 'guru')->count() > 0) {
+        // Cek wali kelas (relasi hasOne di model Kelas)
+        if ($kelas->waliKelas) {
             return response()->json([
                 'success' => false,
-                'message' => 'Kelas tidak dapat dihapus karena masih ada wali kelas.'
+                'message' => "Kelas \"{$kelas->nama_kelas}\" tidak dapat dihapus karena masih memiliki wali kelas ({$kelas->waliKelas->nama}). Lepas wali kelas terlebih dahulu."
             ], 422);
         }
 
-        $kelas->delete();
+        try {
+            $nama = $kelas->nama_kelas;
+            $kelas->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Kelas berhasil dihapus.'
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => "Kelas \"{$nama}\" berhasil dihapus."
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus kelas: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

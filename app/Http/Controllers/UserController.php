@@ -7,171 +7,163 @@ use App\Models\Kelas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
-    /**
-     * Display a listing of users.
-     */
     public function index()
     {
-        $users = User::with('kelas')->orderBy('role')->paginate(15);
+        $users = User::with('kelas')->latest()->paginate(10);
         return view('users.index', compact('users'));
     }
 
-    /**
-     * Show form create user.
-     */
     public function create()
     {
-        $kelas = Kelas::all();
+        $kelas = Kelas::orderBy('nama_kelas')->get();
         return view('users.create', compact('kelas'));
     }
 
-    /**
-     * Store user via AJAX (guru / siswa / admin).
-     */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $rules = [
             'nama'     => 'required|string|max:255',
-            'email'    => 'nullable|email|unique:users,email',
-            'nis'      => 'nullable|unique:users,nis',
             'password' => 'required|string|min:8',
             'role'     => 'required|in:admin,guru,siswa',
-            'kelas_id' => 'nullable|exists:kelas,id',
+        ];
+
+        if ($request->role === 'siswa') {
+            $rules['nis']      = 'required|string|max:20|unique:users,nis';
+            $rules['kelas_id'] = 'required|exists:kelas,id';
+        } else {
+            $rules['email']    = 'required|email|max:255|unique:users,email';
+            $rules['kelas_id'] = 'nullable|exists:kelas,id';
+        }
+
+        $validator = Validator::make($request->all(), $rules, [
+            'nis.unique'      => 'NIS sudah terdaftar.',
+            'email.unique'    => 'Email sudah terdaftar.',
+            'kelas_id.exists' => 'Kelas tidak ditemukan.',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'errors'  => $validator->errors()
+                'errors'  => $validator->errors(),
+                'message' => $validator->errors()->first(),
             ], 422);
         }
 
-        // Validasi tambahan: siswa wajib NIS
-        if ($request->role === 'siswa' && !$request->nis) {
+        try {
+            $payload = [
+                'nama'     => $request->nama,
+                'password' => Hash::make($request->password),
+                'role'     => $request->role,
+                'kelas_id' => $request->filled('kelas_id') ? $request->kelas_id : null,
+            ];
+
+            if ($request->role === 'siswa') {
+                $payload['nis'] = $request->nis;
+            } else {
+                $payload['email'] = $request->email;
+            }
+
+            User::create($payload);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'User berhasil ditambahkan.',
+            ]);
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'NIS wajib diisi untuk siswa.'
-            ], 422);
+                'message' => 'Gagal menambahkan user: ' . $e->getMessage(),
+            ], 500);
         }
-
-        // Validasi tambahan: guru wajib kelas
-        if ($request->role === 'guru' && !$request->kelas_id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Kelas wajib dipilih untuk guru.'
-            ], 422);
-        }
-
-        $user = User::create([
-            'nama'     => $request->nama,
-            'email'    => $request->email,
-            'nis'      => $request->nis,
-            'password' => Hash::make($request->password),
-            'role'     => $request->role,
-            'kelas_id' => $request->kelas_id,
-        ]);
-
-        $user->load('kelas');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Data ' . $request->role . ' berhasil disimpan.',
-            'user'    => $user
-        ]);
     }
 
-    /**
-     * Show form edit user.
-     */
-    public function edit($id)
+    public function show(User $user)
     {
-        $user = User::findOrFail($id);
-        $kelas = Kelas::all();
+        $user->load(['kelas', 'dokumen']);
+        return view('users.show', compact('user'));
+    }
+
+    public function edit(User $user)
+    {
+        $kelas = Kelas::orderBy('nama_kelas')->get();
         return view('users.edit', compact('user', 'kelas'));
     }
 
     /**
-     * Update user via AJAX.
+     * Update user — dipakai untuk arahkan / lepas kelas.
+     *
+     * PERBAIKAN:
+     * - Normalisasi "" → null supaya bisa "lepas dari kelas"
+     * - Cek konflik wali kelas: 1 kelas hanya boleh 1 guru
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, User $user)
     {
-        $user = User::findOrFail($id);
-
         $validator = Validator::make($request->all(), [
-            'nama'     => 'required|string|max:255',
-            'email'    => 'nullable|email|unique:users,email,' . $id,
-            'nis'      => 'nullable|unique:users,nis,' . $id,
-            'password' => 'nullable|string|min:8',
-            'role'     => 'required|in:admin,guru,siswa',
             'kelas_id' => 'nullable|exists:kelas,id',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'errors'  => $validator->errors()
+                'errors'  => $validator->errors(),
+                'message' => $validator->errors()->first(),
             ], 422);
         }
 
-        $data = [
-            'nama'     => $request->nama,
-            'email'    => $request->email,
-            'nis'      => $request->nis,
-            'role'     => $request->role,
-            'kelas_id' => $request->kelas_id,
-        ];
+        // Normalisasi: "" atau tidak dikirim → null (lepas kelas)
+        $kelasId = $request->filled('kelas_id') ? $request->kelas_id : null;
 
-        if ($request->filled('password')) {
-            $data['password'] = Hash::make($request->password);
-        }
+        try {
+            // Cegah 1 kelas punya 2 wali kelas
+            if ($kelasId && $user->role === 'guru') {
+                $konflik = User::where('role', 'guru')
+                    ->where('kelas_id', $kelasId)
+                    ->where('id', '!=', $user->id)
+                    ->first();
 
-        $user->update($data);
-        $user->load('kelas');
+                if ($konflik) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Kelas ini sudah memiliki wali kelas ({$konflik->nama}). Lepas dulu wali kelas sebelumnya.",
+                    ], 422);
+                }
+            }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Data berhasil diperbarui.',
-            'user'    => $user
-        ]);
-    }
+            $user->update(['kelas_id' => $kelasId]);
 
-    /**
-     * Delete user via AJAX.
-     */
-    public function destroy($id)
-    {
-        $user = User::findOrFail($id);
+            $message = $kelasId
+                ? "Guru berhasil diarahkan ke kelas."
+                : "Guru berhasil dilepas dari kelas.";
 
-        if ($user->id == Auth::id()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+            ]);
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Tidak dapat menghapus akun sendiri.'
-            ], 422);
+                'message' => 'Gagal memperbarui user: ' . $e->getMessage(),
+            ], 500);
         }
-
-        $user->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'User berhasil dihapus.'
-        ]);
     }
 
-    /**
-     * Guru: lihat siswa di kelas yang diampu.
-     */
-    public function guruSiswa()
+    public function destroy(User $user)
     {
-        $guru = Auth::user();
-        $siswa = User::where('role', 'siswa')
-            ->where('kelas_id', $guru->kelas_id)
-            ->with('kelas')
-            ->paginate(15);
+        try {
+            $user->delete();
 
-        return view('guru.siswa', compact('siswa'));
+            return response()->json([
+                'success' => true,
+                'message' => 'User berhasil dihapus.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus user: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

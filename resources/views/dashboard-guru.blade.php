@@ -10,8 +10,10 @@
     <style>
         :root { --primary: #1a237e; --primary-light: #283593; --sidebar-width: 250px; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; }
-        .sidebar { position: fixed; left: 0; top: 0; width: var(--sidebar-width); height: 100%; background: var(--primary); color: white; padding: 20px 0; z-index: 1000; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; overflow-x: hidden; }
+        
+        /* SIDEBAR */
+        .sidebar { position: fixed; left: 0; top: 0; width: var(--sidebar-width); height: 100%; background: var(--primary); color: white; padding: 20px 0; z-index: 1000; transition: all 0.3s; overflow-y: auto; }
         .sidebar .brand { padding: 0 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
         .sidebar .brand h4 { font-weight: 700; }
         .sidebar .brand h4 span { color: #ffd54f; }
@@ -22,9 +24,13 @@
         .sidebar .nav-link .badge-request { background: #dc3545; color: white; font-size: 10px; padding: 2px 8px; border-radius: 10px; margin-left: 5px; }
         .sidebar .user-profile { padding: 15px 20px; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 20px; }
         .sidebar .user-profile .avatar { width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 20px; }
-        .main-content { margin-left: var(--sidebar-width); padding: 20px 30px; }
+
+        /* MAIN CONTENT */
+        .main-content { margin-left: var(--sidebar-width); padding: 20px 30px; transition: all 0.3s; }
         .topbar { background: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
         .topbar h5 { margin: 0; color: var(--primary); }
+        
+        /* DESAIN ASLI LAINNYA */
         .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: transform 0.3s; }
         .stat-card:hover { transform: translateY(-5px); }
         .stat-card .number { font-size: 28px; font-weight: 700; color: var(--primary); }
@@ -33,8 +39,8 @@
         .filter-section .btn-filter { padding: 5px 15px; border-radius: 20px; border: 1px solid #ddd; background: white; color: #666; font-size: 13px; cursor: pointer; transition: all 0.3s; }
         .filter-section .btn-filter:hover, .filter-section .btn-filter.active { background: var(--primary); color: white; border-color: var(--primary); }
         .table-documents { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .table-documents th { color: #666; font-weight: 600; font-size: 13px; border-bottom: 2px solid #eee; }
-        .table-documents td { vertical-align: middle; font-size: 14px; }
+        .table-documents th { color: #666; font-weight: 600; font-size: 13px; border-bottom: 2px solid #eee; white-space: nowrap; }
+        .table-documents td { vertical-align: middle; font-size: 14px; white-space: nowrap; }
         .badge-status { padding: 4px 12px; border-radius: 12px; font-size: 12px; }
         .badge-status.verified { background: #d4edda; color: #155724; }
         .badge-status.pending { background: #fff3cd; color: #856404; }
@@ -58,11 +64,25 @@
         .badge-request-status.approved { background: #d4edda; color: #155724; }
         .badge-request-status.rejected { background: #f8d7da; color: #721c24; }
         .spinner-border-sm { width: 1rem; height: 1rem; }
+
+        /* RESPONSIVE LAYOUT */
+        @media (max-width: 991px) {
+            .sidebar { left: -260px; }
+            .sidebar.show { left: 0; }
+            .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; }
+            .sidebar-overlay.show { display: block; }
+            .main-content { margin-left: 0; padding: 15px; }
+            .topbar { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .request-card .request-info { flex-direction: column; align-items: flex-start; gap: 10px; }
+        }
     </style>
 </head>
 <body>
+
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="brand">
             <h4><i class="bi bi-file-earmark-text"></i> SIMAD<span>.</span></h4>
             <small>v1.0</small>
@@ -100,9 +120,15 @@
     <!-- Main Content -->
     <div class="main-content">
         <div class="topbar">
-            <div>
-                <h5><i class="bi bi-grid"></i> <span id="page-title">Dashboard</span></h5>
-                <small class="text-muted">SMK 5 SURAKARTA - {{ date('l, d F Y') }}</small>
+            <div class="d-flex align-items-center gap-2">
+                <!-- TOMBOL HAMBURGER (Hanya muncul di HP) -->
+                <button class="btn btn-light d-lg-none shadow-sm px-2" onclick="toggleSidebar()">
+                    <i class="bi bi-list fs-3"></i>
+                </button>
+                <div>
+                    <h5><i class="bi bi-grid d-none d-md-inline"></i> <span id="page-title">Dashboard</span></h5>
+                    <small class="text-muted d-none d-sm-block">SMK 5 SURAKARTA - {{ date('l, d F Y') }}</small>
+                </div>
             </div>
             <div><span class="badge bg-primary">Guru</span></div>
         </div>
@@ -110,28 +136,28 @@
         <!-- PAGE: DASHBOARD -->
         <div id="page-dashboard" class="page-section active">
             <div class="row g-3 mb-4">
-                <div class="col-md-3">
+                <div class="col-6 col-md-3">
                     <div class="stat-card d-flex justify-content-between align-items-center">
                         <div><div class="number" id="statDokumen">{{ $data['total_dokumen'] ?? 0 }}</div><div class="label">Total Dokumen</div></div>
-                        <i class="bi bi-file-earmark fs-1 text-primary opacity-50"></i>
+                        <i class="bi bi-file-earmark fs-1 text-primary opacity-50 d-none d-sm-block"></i>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-6 col-md-3">
                     <div class="stat-card d-flex justify-content-between align-items-center">
                         <div><div class="number" id="statTerverifikasi">{{ $data['total_terverifikasi'] ?? 0 }}</div><div class="label">Terverifikasi</div></div>
-                        <i class="bi bi-check-circle fs-1 text-success opacity-50"></i>
+                        <i class="bi bi-check-circle fs-1 text-success opacity-50 d-none d-sm-block"></i>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-6 col-md-3">
                     <div class="stat-card d-flex justify-content-between align-items-center">
                         <div><div class="number" id="statMenunggu">{{ $data['total_menunggu'] ?? 0 }}</div><div class="label">Menunggu</div></div>
-                        <i class="bi bi-clock fs-1 text-warning opacity-50"></i>
+                        <i class="bi bi-clock fs-1 text-warning opacity-50 d-none d-sm-block"></i>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-6 col-md-3">
                     <div class="stat-card d-flex justify-content-between align-items-center">
                         <div><div class="number" id="statRequest">{{ $data['total_request'] ?? 0 }}</div><div class="label">Request Masuk</div></div>
-                        <i class="bi bi-envelope-paper fs-1 text-info opacity-50"></i>
+                        <i class="bi bi-envelope-paper fs-1 text-info opacity-50 d-none d-sm-block"></i>
                     </div>
                 </div>
             </div>
@@ -145,11 +171,7 @@
                         <div>
                             <strong>{{ $req->judul }}</strong>
                             <div class="request-meta">
-                                <i class="bi bi-person"></i> {{ $req->siswa->nama ?? '-' }}
-                                <span class="mx-2">|</span>
-                                <i class="bi bi-tag"></i> {{ $req->kategori->nama_kategori ?? 'Umum' }}
-                                <span class="mx-2">|</span>
-                                <i class="bi bi-calendar"></i> {{ $req->created_at->format('d M Y H:i') }}
+                                <i class="bi bi-person"></i> {{ $req->siswa->nama ?? '-' }} | <i class="bi bi-tag"></i> {{ $req->kategori->nama_kategori ?? 'Umum' }}
                             </div>
                         </div>
                         <div>
@@ -195,13 +217,13 @@
         <div id="page-dokumen" class="page-section">
             <div class="filter-section">
                 <div class="row align-items-center g-2">
-                    <div class="col-md-4">
+                    <div class="col-12 col-md-4 mb-2 mb-md-0">
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
-                            <input type="text" id="searchDokumen" class="form-control border-start-0" placeholder="Cari nama siswa atau dokumen...">
+                            <input type="text" id="searchDokumen" class="form-control border-start-0" placeholder="Cari siswa/dokumen...">
                         </div>
                     </div>
-                    <div class="col-md-8">
+                    <div class="col-12 col-md-8">
                         <div class="d-flex flex-wrap gap-2">
                             <button class="btn-filter active" data-filter="all">Semua</button>
                             <button class="btn-filter" data-filter="RAPOR">RAPOR</button>
@@ -209,7 +231,7 @@
                             <button class="btn-filter" data-filter="TOEIC">TOEIC</button>
                             <button class="btn-filter" data-filter="UKK">UKK</button>
                             <button class="btn-filter" data-filter="PKL">PKL</button>
-                            <span class="mx-2 text-muted">|</span>
+                            <span class="mx-2 text-muted d-none d-sm-inline">|</span>
                             <button class="btn-filter" data-status="aktif">Verified</button>
                             <button class="btn-filter" data-status="pending">Pending</button>
                         </div>
@@ -220,7 +242,7 @@
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h6 class="mb-0"><i class="bi bi-table"></i> Daftar Dokumen</h6>
                     <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">
-                        <i class="bi bi-plus-circle"></i> Upload Dokumen
+                        <i class="bi bi-plus-circle"></i> Upload
                     </button>
                 </div>
                 <div class="table-responsive">
@@ -243,15 +265,8 @@
                                 </td>
                                 <td>{{ $dok->created_at->format('d M Y') }}</td>
                                 <td>
-                                    <a href="{{ route('guru.dokumen.preview', $dok->id) }}"
-                                       target="_blank"
-                                       class="btn btn-sm btn-outline-primary btn-action">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    <a href="{{ route('guru.dokumen.download', $dok->id) }}"
-                                       class="btn btn-sm btn-outline-success btn-action">
-                                        <i class="bi bi-download"></i>
-                                    </a>
+                                    <a href="{{ route('guru.dokumen.preview', $dok->id) }}" target="_blank" class="btn btn-sm btn-outline-primary btn-action"><i class="bi bi-eye"></i></a>
+                                    <a href="{{ route('guru.dokumen.download', $dok->id) }}" class="btn btn-sm btn-outline-success btn-action"><i class="bi bi-download"></i></a>
                                     <button class="btn btn-sm btn-outline-warning btn-action" onclick="editDokumen({{ $dok->id }})"><i class="bi bi-pencil"></i></button>
                                     <button class="btn btn-sm btn-outline-danger btn-action btn-hapus-dokumen" data-id="{{ $dok->id }}"><i class="bi bi-trash"></i></button>
                                 </td>
@@ -262,7 +277,7 @@
                         </tbody>
                     </table>
                 </div>
-                {{ $data['dokumen']->links() }}
+                <div class="mt-2">{{ $data['dokumen']->links() }}</div>
             </div>
         </div>
 
@@ -288,9 +303,6 @@
                                         <button class="btn btn-sm btn-primary btn-upload-siswa" data-id="{{ $s->id }}" data-nama="{{ $s->nama }}">
                                             <i class="bi bi-upload"></i> Upload
                                         </button>
-                                        <button class="btn btn-sm btn-outline-info btn-detail-siswa" data-id="{{ $s->id }}">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
                                     </td>
                                 </tr>
                                 @empty
@@ -307,7 +319,7 @@
         <div id="page-request" class="page-section">
             <div class="card">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0"><i class="bi bi-envelope-paper"></i> Request Dokumen dari Siswa</h6>
+                    <h6 class="mb-0"><i class="bi bi-envelope-paper"></i> Request Dokumen</h6>
                     <span class="badge bg-primary" id="requestCountBadge">{{ $data['request_count'] ?? 0 }} Menunggu</span>
                 </div>
                 <div class="card-body" id="requestListBody">
@@ -318,47 +330,31 @@
                                 <div>
                                     <h6 class="mb-1">{{ $req->judul }}</h6>
                                     <div class="request-meta">
-                                        <i class="bi bi-person"></i> <strong>{{ $req->siswa->nama ?? '-' }}</strong>
-                                        <span class="mx-2">|</span>
-                                        <i class="bi bi-tag"></i> {{ $req->kategori->nama_kategori ?? 'Umum' }}
-                                        <span class="mx-2">|</span>
-                                        <i class="bi bi-calendar"></i> {{ $req->created_at->format('d M Y H:i') }}
+                                        <i class="bi bi-person"></i> <strong>{{ $req->siswa->nama ?? '-' }}</strong> | <i class="bi bi-tag"></i> {{ $req->kategori->nama_kategori ?? 'Umum' }}
                                     </div>
                                     @if($req->keterangan)
                                         <p class="mt-2 mb-0 small text-muted"><i class="bi bi-chat"></i> {{ $req->keterangan }}</p>
                                     @endif
                                 </div>
-                                <div class="text-end">
+                                <div class="text-end mt-2 mt-sm-0">
                                     <span class="badge-request-status {{ $req->status }}" id="req-badge-{{ $req->id }}">
                                         {{ $req->status == 'pending' ? 'Menunggu' : ($req->status == 'approved' ? 'Disetujui' : 'Ditolak') }}
                                     </span>
                                     @if($req->status == 'pending')
                                         <div class="mt-2" id="req-actions-{{ $req->id }}">
-                                            <button class="btn btn-sm btn-success" onclick="processRequest({{ $req->id }}, 'approved')"><i class="bi bi-check"></i> Setujui</button>
-                                            <button class="btn btn-sm btn-danger" onclick="processRequest({{ $req->id }}, 'rejected')"><i class="bi bi-x"></i> Tolak</button>
-                                            <button class="btn btn-sm btn-primary" onclick="uploadForRequest({{ $req->id }})"><i class="bi bi-upload"></i> Upload</button>
-                                        </div>
-                                    @endif
-                                    @if($req->status == 'rejected' && $req->alasan)
-                                        <p class="mt-1 small text-danger"><i class="bi bi-x-circle"></i> Alasan: {{ $req->alasan }}</p>
-                                    @endif
-                                    @if($req->status == 'approved')
-                                        <div class="mt-2">
-                                            <small class="text-success">
-                                                <i class="bi bi-check-circle"></i> Disetujui
-                                                @if($req->processed_at) pada {{ $req->processed_at->format('d M Y H:i') }} @endif
-                                            </small>
+                                            <button class="btn btn-sm btn-success" onclick="processRequest({{ $req->id }}, 'approved')"><i class="bi bi-check"></i></button>
+                                            <button class="btn btn-sm btn-danger" onclick="processRequest({{ $req->id }}, 'rejected')"><i class="bi bi-x"></i></button>
+                                            <button class="btn btn-sm btn-primary" onclick="uploadForRequest({{ $req->id }})"><i class="bi bi-upload"></i></button>
                                         </div>
                                     @endif
                                 </div>
                             </div>
                         </div>
                         @endforeach
-                        {{ $data['requests']->links() }}
+                        <div class="mt-2">{{ $data['requests']->links() }}</div>
                     @else
                         <div class="text-center text-muted py-4" id="emptyRequest">
-                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                            Belum ada request dari siswa
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i> Belum ada request
                         </div>
                     @endif
                 </div>
@@ -371,7 +367,7 @@
                 <div class="card-header bg-white"><h6 class="mb-0"><i class="bi bi-person-circle"></i> Profil Saya</h6></div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-3 text-center">
+                        <div class="col-md-3 text-center mb-3 mb-md-0">
                             <div class="avatar-sm" style="width: 100px; height: 100px; font-size: 40px; margin: 0 auto; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
                                 {{ substr($user->nama, 0, 2) }}
                             </div>
@@ -379,8 +375,8 @@
                             <span class="badge bg-primary">{{ ucfirst($user->role) }}</span>
                         </div>
                         <div class="col-md-9">
-                            <table class="table">
-                                <tr><th width="200">Nama Lengkap</th><td>{{ $user->nama }}</td></tr>
+                            <table class="table table-sm">
+                                <tr><th width="150">Nama</th><td>{{ $user->nama }}</td></tr>
                                 <tr><th>Email</th><td>{{ $user->email ?? '-' }}</td></tr>
                                 <tr><th>Role</th><td>{{ ucfirst($user->role) }}</td></tr>
                                 <tr><th>Kelas Diampu</th><td>{{ $user->kelas->nama_kelas ?? '-' }}</td></tr>
@@ -395,7 +391,7 @@
 
     <!-- MODAL UPLOAD -->
     <div class="modal fade" id="uploadModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title"><i class="bi bi-upload"></i> Upload Dokumen</h5>
@@ -404,51 +400,37 @@
                 <form id="uploadForm" action="{{ route('guru.dokumen.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="modal-body">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Judul Dokumen <span class="text-danger">*</span></label>
-                                <input type="text" name="judul" class="form-control" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Kategori <span class="text-danger">*</span></label>
-                                <select name="kategori_id" class="form-control" required>
-                                    <option value="">Pilih Kategori</option>
-                                    @foreach($data['kategori'] ?? [] as $kat)
-                                    <option value="{{ $kat->id }}">{{ $kat->nama_kategori }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Pilih Siswa <span class="text-danger">*</span></label>
-                                <select name="siswa_id" id="uploadSiswaSelect" class="form-control" required>
-                                    <option value="">Pilih Siswa</option>
-                                    @foreach($data['siswa'] ?? [] as $s)
-                                    <option value="{{ $s->id }}">{{ $s->nama }} ({{ $s->nis }})</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Status</label>
-                                <select name="status" class="form-control">
-                                    <option value="pending">Menunggu</option>
-                                    <option value="aktif">Terverifikasi</option>
-                                </select>
-                            </div>
-                            <div class="col-12 mb-3">
-                                <label class="form-label fw-bold">File Dokumen <span class="text-danger">*</span></label>
-                                <input type="file" name="file" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
-                                <small class="text-muted">Format: PDF, DOC, DOCX, JPG, PNG (Max: 2MB)</small>
-                            </div>
-                            <div class="col-12 mb-3">
-                                <label class="form-label fw-bold">Keterangan</label>
-                                <textarea name="keterangan" class="form-control" rows="2"></textarea>
-                            </div>
-                            <div class="alert alert-danger d-none" id="uploadError"></div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Judul <span class="text-danger">*</span></label>
+                            <input type="text" name="judul" class="form-control" required>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Kategori <span class="text-danger">*</span></label>
+                            <select name="kategori_id" class="form-control" required>
+                                <option value="">Pilih Kategori</option>
+                                @foreach($data['kategori'] ?? [] as $kat)
+                                <option value="{{ $kat->id }}">{{ $kat->nama_kategori }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Pilih Siswa <span class="text-danger">*</span></label>
+                            <select name="siswa_id" id="uploadSiswaSelect" class="form-control" required>
+                                <option value="">Pilih Siswa</option>
+                                @foreach($data['siswa'] ?? [] as $s)
+                                <option value="{{ $s->id }}">{{ $s->nama }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">File <span class="text-danger">*</span></label>
+                            <input type="file" name="file" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
+                        </div>
+                        <div class="alert alert-danger d-none" id="uploadError"></div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary"><i class="bi bi-cloud-upload"></i> Upload</button>
+                        <button type="submit" class="btn btn-primary">Upload</button>
                     </div>
                 </form>
             </div>
@@ -457,61 +439,48 @@
 
     <!-- MODAL UPLOAD UNTUK REQUEST -->
     <div class="modal fade" id="uploadRequestModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-upload"></i> Upload Dokumen untuk Request</h5>
+                    <h5 class="modal-title"><i class="bi bi-upload"></i> Upload untuk Request</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <form id="uploadRequestForm" action="{{ route('guru.dokumen.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="modal-body">
-                        <div class="alert alert-info"><i class="bi bi-info-circle"></i> Upload dokumen untuk memenuhi request siswa.</div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Judul Dokumen <span class="text-danger">*</span></label>
-                                <input type="text" name="judul" id="requestJudul" class="form-control" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Kategori <span class="text-danger">*</span></label>
-                                <select name="kategori_id" id="requestKategori" class="form-control" required>
-                                    <option value="">Pilih Kategori</option>
-                                    @foreach($data['kategori'] ?? [] as $kat)
-                                    <option value="{{ $kat->id }}">{{ $kat->nama_kategori }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Pilih Siswa <span class="text-danger">*</span></label>
-                                <select name="siswa_id" id="requestSiswa" class="form-control" required>
-                                    <option value="">Pilih Siswa</option>
-                                    @foreach($data['siswa'] ?? [] as $s)
-                                    <option value="{{ $s->id }}">{{ $s->nama }} ({{ $s->nis }})</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Status</label>
-                                <select name="status" class="form-control">
-                                    <option value="aktif">Terverifikasi</option>
-                                    <option value="pending">Menunggu</option>
-                                </select>
-                            </div>
-                            <div class="col-12 mb-3">
-                                <label class="form-label fw-bold">File Dokumen <span class="text-danger">*</span></label>
-                                <input type="file" name="file" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
-                            </div>
-                            <div class="col-12 mb-3">
-                                <label class="form-label fw-bold">Keterangan</label>
-                                <textarea name="keterangan" class="form-control" rows="2"></textarea>
-                            </div>
+                        <div class="alert alert-info py-2"><i class="bi bi-info-circle"></i> Penuhi request siswa.</div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Judul <span class="text-danger">*</span></label>
+                            <input type="text" name="judul" id="requestJudul" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Kategori <span class="text-danger">*</span></label>
+                            <select name="kategori_id" id="requestKategori" class="form-control" required>
+                                <option value="">Pilih Kategori</option>
+                                @foreach($data['kategori'] ?? [] as $kat)
+                                <option value="{{ $kat->id }}">{{ $kat->nama_kategori }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Pilih Siswa <span class="text-danger">*</span></label>
+                            <select name="siswa_id" id="requestSiswa" class="form-control" required>
+                                <option value="">Pilih Siswa</option>
+                                @foreach($data['siswa'] ?? [] as $s)
+                                <option value="{{ $s->id }}">{{ $s->nama }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">File <span class="text-danger">*</span></label>
+                            <input type="file" name="file" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
                         </div>
                         <input type="hidden" name="request_id" id="requestId">
                         <div class="alert alert-danger d-none" id="requestError"></div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary"><i class="bi bi-cloud-upload"></i> Upload & Selesaikan</button>
+                        <button type="submit" class="btn btn-primary">Upload & Selesai</button>
                     </div>
                 </form>
             </div>
@@ -523,7 +492,6 @@
         <div id="liveToast" class="toast" role="alert">
             <div class="toast-header">
                 <strong class="me-auto"><i class="bi bi-info-circle"></i> SIMAD</strong>
-                <small>Baru saja</small>
                 <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
             </div>
             <div class="toast-body" id="toastMessage">Pesan</div>
@@ -534,7 +502,13 @@
     <script>
         const CSRF = document.querySelector('meta[name="csrf-token"]').content;
 
-        // ============ NAVIGASI ============
+        // Toggle Sidebar Mobile
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+            document.getElementById('sidebarOverlay').classList.toggle('show');
+        }
+
+        // Navigasi Menu
         document.querySelectorAll('.sidebar .nav-link').forEach(link => {
             link.addEventListener('click', function() {
                 document.querySelectorAll('.sidebar .nav-link').forEach(l => l.classList.remove('active'));
@@ -542,48 +516,14 @@
                 document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
                 const page = this.dataset.page;
                 document.getElementById('page-' + page).classList.add('active');
-                const titles = {'dashboard': 'Dashboard', 'dokumen': 'Manajemen Dokumen', 'siswa': 'Data Siswa', 'request': 'Request Siswa', 'profil': 'Profil'};
+                const titles = {'dashboard': 'Dashboard', 'dokumen': 'Dokumen', 'siswa': 'Data Siswa', 'request': 'Request', 'profil': 'Profil'};
                 document.getElementById('page-title').textContent = titles[page] || page;
+                
+                if (window.innerWidth < 992) toggleSidebar();
             });
         });
 
-        // ============ FILTER ============
-        document.querySelectorAll('.btn-filter').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const parent = this.closest('.filter-section');
-                parent.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                const filter = this.dataset.filter;
-                const status = this.dataset.status;
-                document.querySelectorAll('#dokumenBody tr').forEach(row => {
-                    let show = true;
-                    if (filter && filter !== 'all') {
-                        const kategori = row.querySelector('.badge-category');
-                        if (kategori && kategori.textContent.trim() !== filter) show = false;
-                    }
-                    if (status && show) {
-                        const badge = row.querySelector('.badge-status');
-                        if (badge) {
-                            const isVerified = badge.classList.contains('verified');
-                            const isPending = badge.classList.contains('pending');
-                            if (status === 'aktif' && !isVerified) show = false;
-                            if (status === 'pending' && !isPending) show = false;
-                        }
-                    }
-                    row.style.display = show ? '' : 'none';
-                });
-            });
-        });
-
-        // ============ SEARCH ============
-        document.getElementById('searchDokumen')?.addEventListener('keyup', function() {
-            const search = this.value.toLowerCase();
-            document.querySelectorAll('#dokumenBody tr').forEach(row => {
-                row.style.display = row.textContent.toLowerCase().includes(search) ? '' : 'none';
-            });
-        });
-
-        // ============ TOAST ============
+        // Notifikasi Toast
         function showToast(type, message) {
             const toast = document.getElementById('liveToast');
             const colors = {'success': '#d4edda', 'danger': '#f8d7da', 'warning': '#fff3cd', 'info': '#d1ecf1'};
@@ -592,7 +532,67 @@
             new bootstrap.Toast(toast).show();
         }
 
-        // ============ UPLOAD DOKUMEN (LIVE) ============
+        @if(session('success')) showToast('success', '{{ session('success') }}'); @endif
+        @if(session('error')) showToast('danger', '{{ session('error') }}'); @endif
+
+        // 1. FUNGSI UNTUK SETUJUI / TOLAK REQUEST
+        async function processRequest(id, status) {
+            if (!confirm('Yakin ingin ' + (status === 'approved' ? 'menyetujui' : 'menolak') + ' request ini?')) return;
+
+            const formData = new FormData();
+            formData.append('status', status);
+            formData.append('_token', CSRF);
+
+            if (status === 'rejected') {
+                const alasan = prompt('Masukkan alasan penolakan:');
+                if (!alasan) return;
+                formData.append('alasan', alasan);
+            }
+
+            try {
+                const response = await fetch('/guru/request/' + id + '/process', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': CSRF, 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    showToast('danger', result.message || 'Gagal memproses');
+                    return;
+                }
+
+                const reqCard = document.getElementById('req-card-' + id);
+                if (reqCard) {
+                    reqCard.classList.remove('pending');
+                    reqCard.classList.add(status);
+                    const badge = document.getElementById('req-badge-' + id);
+                    if (badge) {
+                        badge.className = 'badge-request-status ' + status;
+                        badge.textContent = status === 'approved' ? 'Disetujui' : 'Ditolak';
+                    }
+                    const actions = document.getElementById('req-actions-' + id);
+                    if (actions) actions.remove();
+                }
+
+                const reqBadge = document.getElementById('requestCountBadge');
+                const reqSideBadge = document.getElementById('requestBadge');
+                if (reqBadge) reqBadge.textContent = (parseInt(reqBadge.textContent) - 1) + ' Menunggu';
+                if (reqSideBadge) {
+                    const val = parseInt(reqSideBadge.textContent) - 1;
+                    if (val <= 0) reqSideBadge.remove();
+                    else reqSideBadge.textContent = val;
+                }
+
+                showToast('success', result.message || 'Request berhasil diproses.');
+
+            } catch (err) {
+                showToast('danger', 'Gagal: ' + err.message);
+            }
+        }
+
+        // 2. FUNGSI UPLOAD DOKUMEN (UMUM)
         document.getElementById('uploadForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
             const form = this;
@@ -602,16 +602,12 @@
 
             errorBox.classList.add('d-none');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Uploading...';
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Upload...';
 
             try {
                 const response = await fetch(form.action, {
                     method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': CSRF,
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    },
+                    headers: { 'X-CSRF-TOKEN': CSRF, 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
                     body: formData
                 });
 
@@ -625,11 +621,8 @@
                     return;
                 }
 
-                // ===== LIVE UPDATE =====
                 const d = result.dokumen;
                 const tbody = document.getElementById('dokumenBody');
-
-                // Hapus empty state
                 if (tbody.querySelector('td[colspan]')) tbody.innerHTML = '';
 
                 const row = `
@@ -648,24 +641,14 @@
                         <td>
                             <a href="/guru/dokumen/preview/${d.id}" target="_blank" class="btn btn-sm btn-outline-primary btn-action"><i class="bi bi-eye"></i></a>
                             <a href="/guru/dokumen/download/${d.id}" class="btn btn-sm btn-outline-success btn-action"><i class="bi bi-download"></i></a>
-                            <button class="btn btn-sm btn-outline-warning btn-action" onclick="editDokumen(${d.id})"><i class="bi bi-pencil"></i></button>
                             <button class="btn btn-sm btn-outline-danger btn-action btn-hapus-dokumen" data-id="${d.id}"><i class="bi bi-trash"></i></button>
                         </td>
                     </tr>
                 `;
                 tbody.insertAdjacentHTML('afterbegin', row);
 
-                // Update counter dokumen siswa
                 const badge = document.getElementById('dokCount-' + d.siswa_id);
                 if (badge) badge.textContent = parseInt(badge.textContent) + 1;
-
-                // Update statistik
-                const statDok = document.getElementById('statDokumen');
-                const statVerif = document.getElementById('statTerverifikasi');
-                const statMen = document.getElementById('statMenunggu');
-                if (statDok) statDok.textContent = parseInt(statDok.textContent) + 1;
-                if (d.status === 'aktif' && statVerif) statVerif.textContent = parseInt(statVerif.textContent) + 1;
-                if (d.status === 'pending' && statMen) statMen.textContent = parseInt(statMen.textContent) + 1;
 
                 form.reset();
                 bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide();
@@ -680,7 +663,29 @@
             }
         });
 
-        // ============ UPLOAD UNTUK REQUEST (LIVE) ============
+        // 3. FUNGSI UPLOAD UNTUK REQUEST
+        async function uploadForRequest(id) {
+            try {
+                const response = await fetch('/guru/request/' + id + '/detail', {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    const req = data.request;
+                    document.getElementById('requestId').value = req.id;
+                    document.getElementById('requestJudul').value = req.judul;
+                    document.getElementById('requestKategori').value = req.kategori_id;
+                    document.getElementById('requestSiswa').value = req.siswa_id;
+                    new bootstrap.Modal(document.getElementById('uploadRequestModal')).show();
+                } else {
+                    showToast('danger', data.message || 'Gagal mengambil data');
+                }
+            } catch (err) {
+                showToast('danger', 'Terjadi kesalahan');
+            }
+        }
+
         document.getElementById('uploadRequestForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
             const form = this;
@@ -691,16 +696,12 @@
 
             errorBox.classList.add('d-none');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Uploading...';
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Upload...';
 
             try {
                 const response = await fetch(form.action, {
                     method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': CSRF,
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    },
+                    headers: { 'X-CSRF-TOKEN': CSRF, 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
                     body: formData
                 });
 
@@ -714,43 +715,6 @@
                     return;
                 }
 
-                // ===== LIVE UPDATE =====
-                const d = result.dokumen;
-                const tbody = document.getElementById('dokumenBody');
-                if (tbody.querySelector('td[colspan]')) tbody.innerHTML = '';
-
-                const row = `
-                    <tr data-id="${d.id}">
-                        <td><span class="fw-bold">#${d.id}</span></td>
-                        <td>${d.judul}</td>
-                        <td>${d.siswa ? d.siswa.nama : '-'}</td>
-                        <td>${d.siswa && d.siswa.kelas ? d.siswa.kelas.nama_kelas : '-'}</td>
-                        <td><span class="badge-category">${d.kategori ? d.kategori.nama_kategori : '-'}</span></td>
-                        <td>
-                            <span class="badge-status ${d.status === 'aktif' ? 'verified' : 'pending'}">
-                                ${d.status === 'aktif' ? 'Terverifikasi' : 'Menunggu'}
-                            </span>
-                        </td>
-                        <td>${new Date(d.created_at).toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'})}</td>
-                        <td>
-                            <a href="/guru/dokumen/preview/${d.id}" target="_blank" class="btn btn-sm btn-outline-primary btn-action"><i class="bi bi-eye"></i></a>
-                            <a href="/guru/dokumen/download/${d.id}" class="btn btn-sm btn-outline-success btn-action"><i class="bi bi-download"></i></a>
-                            <button class="btn btn-sm btn-outline-warning btn-action" onclick="editDokumen(${d.id})"><i class="bi bi-pencil"></i></button>
-                            <button class="btn btn-sm btn-outline-danger btn-action btn-hapus-dokumen" data-id="${d.id}"><i class="bi bi-trash"></i></button>
-                        </td>
-                    </tr>
-                `;
-                tbody.insertAdjacentHTML('afterbegin', row);
-
-                // Update counter dokumen siswa
-                const badge = document.getElementById('dokCount-' + d.siswa_id);
-                if (badge) badge.textContent = parseInt(badge.textContent) + 1;
-
-                // Update statistik
-                const statDok = document.getElementById('statDokumen');
-                if (statDok) statDok.textContent = parseInt(statDok.textContent) + 1;
-
-                // Update request card status → selesai
                 const reqCard = document.getElementById('req-card-' + requestId);
                 if (reqCard) {
                     reqCard.classList.remove('pending');
@@ -764,7 +728,6 @@
                     if (actions) actions.remove();
                 }
 
-                // Update counter request
                 const reqBadge = document.getElementById('requestCountBadge');
                 const reqSideBadge = document.getElementById('requestBadge');
                 if (reqBadge) reqBadge.textContent = (parseInt(reqBadge.textContent) - 1) + ' Menunggu';
@@ -787,96 +750,7 @@
             }
         });
 
-        // ============ PROCESS REQUEST (LIVE) ============
-        async function processRequest(id, status) {
-            if (!confirm('Yakin ingin ' + (status === 'approved' ? 'menyetujui' : 'menolak') + ' request ini?')) return;
-
-            const formData = new FormData();
-            formData.append('status', status);
-            formData.append('_token', CSRF);
-
-            if (status === 'rejected') {
-                const alasan = prompt('Masukkan alasan penolakan:');
-                if (!alasan) return;
-                formData.append('alasan', alasan);
-            }
-
-            try {
-                const response = await fetch('/guru/request/' + id + '/process', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': CSRF,
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    },
-                    body: formData
-                });
-
-                const result = await response.json();
-
-                if (!response.ok || !result.success) {
-                    showToast('danger', result.message || 'Gagal memproses');
-                    return;
-                }
-
-                // ===== LIVE UPDATE =====
-                const reqCard = document.getElementById('req-card-' + id);
-                if (reqCard) {
-                    reqCard.classList.remove('pending');
-                    reqCard.classList.add(status);
-                    const badge = document.getElementById('req-badge-' + id);
-                    if (badge) {
-                        badge.className = 'badge-request-status ' + status;
-                        badge.textContent = status === 'approved' ? 'Disetujui' : 'Ditolak';
-                    }
-                    const actions = document.getElementById('req-actions-' + id);
-                    if (actions) actions.remove();
-                }
-
-                // Update counter
-                const reqBadge = document.getElementById('requestCountBadge');
-                const reqSideBadge = document.getElementById('requestBadge');
-                if (reqBadge) reqBadge.textContent = (parseInt(reqBadge.textContent) - 1) + ' Menunggu';
-                if (reqSideBadge) {
-                    const val = parseInt(reqSideBadge.textContent) - 1;
-                    if (val <= 0) reqSideBadge.remove();
-                    else reqSideBadge.textContent = val;
-                }
-
-                showToast('success', result.message || 'Request berhasil diproses.');
-
-            } catch (err) {
-                showToast('danger', 'Gagal: ' + err.message);
-            }
-        }
-
-        // ============ UPLOAD FOR REQUEST ============
-        async function uploadForRequest(id) {
-            try {
-                const response = await fetch('/guru/request/' + id + '/detail', {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    }
-                });
-                const data = await response.json();
-
-                if (data.success) {
-                    const req = data.request;
-                    document.getElementById('requestId').value = req.id;
-                    document.getElementById('requestJudul').value = req.judul;
-                    document.getElementById('requestKategori').value = req.kategori_id;
-                    document.getElementById('requestSiswa').value = req.siswa_id;
-                    new bootstrap.Modal(document.getElementById('uploadRequestModal')).show();
-                } else {
-                    showToast('danger', data.message || 'Gagal mengambil data');
-                }
-            } catch (err) {
-                showToast('danger', 'Terjadi kesalahan');
-            }
-        }
-
-        // ============ UPLOAD PER SISWA (dari tabel siswa) ============
+        // 4. FUNGSI TOMBOL UPLOAD DARI TABEL SISWA
         document.addEventListener('click', function(e) {
             const btn = e.target.closest('.btn-upload-siswa');
             if (!btn) return;
@@ -884,25 +758,16 @@
             const siswaId = btn.dataset.id;
             const siswaNama = btn.dataset.nama;
 
-            // Buka modal upload & otomatis pilih siswa
             const select = document.getElementById('uploadSiswaSelect');
             select.value = siswaId;
 
-            // Set judul otomatis
             const judul = document.querySelector('#uploadForm input[name="judul"]');
             if (judul && !judul.value) judul.value = 'Dokumen ' + siswaNama;
 
             new bootstrap.Modal(document.getElementById('uploadModal')).show();
         });
 
-        // ============ DETAIL SISWA (bonus) ============
-        document.addEventListener('click', function(e) {
-            const btn = e.target.closest('.btn-detail-siswa');
-            if (!btn) return;
-            showToast('info', 'Detail siswa sedang dikembangkan.');
-        });
-
-        // ============ HAPUS DOKUMEN (LIVE) ============
+        // 5. FUNGSI HAPUS DOKUMEN
         document.addEventListener('click', async function(e) {
             const btn = e.target.closest('.btn-hapus-dokumen');
             if (!btn) return;
@@ -914,11 +779,7 @@
             try {
                 const response = await fetch('/guru/dokumen/' + id, {
                     method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': CSRF,
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    }
+                    headers: { 'X-CSRF-TOKEN': CSRF, 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
                 });
                 const result = await response.json();
 
@@ -935,12 +796,7 @@
             }
         });
 
-        // ============ PLACEHOLDER ============
         function editDokumen(id) { showToast('info', 'Fitur edit dokumen sedang dikembangkan'); }
-
-        // ============ FLASH MESSAGE ============
-        @if(session('success')) showToast('success', '{{ session('success') }}'); @endif
-        @if(session('error')) showToast('danger', '{{ session('error') }}'); @endif
     </script>
 </body>
 </html>

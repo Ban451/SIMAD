@@ -78,8 +78,6 @@ class DokumenController extends Controller
             'siswa_id'     => 'required|exists:users,id',
             'kategori_id'  => 'required|exists:kategori_dokumen,id',
             'file'         => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
-            'semester'     => 'nullable|string',
-            'tahun_ajaran' => 'nullable|string',
             'keterangan'   => 'nullable|string',
             'status'       => 'nullable|in:aktif,pending',
         ]);
@@ -100,17 +98,14 @@ class DokumenController extends Controller
             $filePath = $file->storeAs('dokumen', $fileName, 'public');
 
             $dokumen = Dokumen::create([
-                'judul'        => $request->judul,
-                'file_path'    => $filePath,
-                'file_name'    => $file->getClientOriginalName(),
-                'file_size'    => $file->getSize(),
-                'keterangan'   => $request->keterangan,
-                'siswa_id'     => $request->siswa_id,
-                'kategori_id'  => $request->kategori_id,
-                'uploaded_by'  => $user->id,
-                'semester'     => $request->semester,
-                'tahun_ajaran' => $request->tahun_ajaran,
-                'status'       => $request->status ?? 'pending',
+                'judul'       => $request->judul,
+                'file_path'   => $filePath,
+                'nama_file'   => $file->getClientOriginalName(), // PERBAIKAN: nama_file
+                'keterangan'  => $request->keterangan,
+                'siswa_id'    => $request->siswa_id,
+                'kategori_id' => $request->kategori_id,
+                'uploaded_by' => $user->id,
+                'status'      => $request->status ?? 'pending',
             ]);
 
             $dokumen->load(['siswa.kelas', 'kategori', 'uploader']);
@@ -175,20 +170,16 @@ class DokumenController extends Controller
             'judul'        => 'required|string|max:255',
             'kategori_id'  => 'required|exists:kategori_dokumen,id',
             'file'         => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
-            'semester'     => 'nullable|string',
-            'tahun_ajaran' => 'nullable|string',
             'keterangan'   => 'nullable|string',
             'status'       => 'nullable|in:aktif,pending',
         ]);
 
         try {
             $data = [
-                'judul'        => $request->judul,
-                'kategori_id'  => $request->kategori_id,
-                'semester'     => $request->semester,
-                'tahun_ajaran' => $request->tahun_ajaran,
-                'keterangan'   => $request->keterangan,
-                'status'       => $request->status ?? $dokumen->status,
+                'judul'       => $request->judul,
+                'kategori_id' => $request->kategori_id,
+                'keterangan'  => $request->keterangan,
+                'status'      => $request->status ?? $dokumen->status,
             ];
 
             if ($request->hasFile('file')) {
@@ -201,8 +192,7 @@ class DokumenController extends Controller
                 $filePath = $file->storeAs('dokumen', $fileName, 'public');
 
                 $data['file_path'] = $filePath;
-                $data['file_name'] = $file->getClientOriginalName();
-                $data['file_size'] = $file->getSize();
+                $data['nama_file'] = $file->getClientOriginalName(); // PERBAIKAN: nama_file
             }
 
             $dokumen->update($data);
@@ -339,8 +329,7 @@ class DokumenController extends Controller
                 'siswa_id'    => $request->siswa_id,
                 'uploaded_by' => $user->id,
                 'file_path'   => $filePath,
-                'file_name'   => $file->getClientOriginalName(),
-                'file_size'   => $file->getSize(),
+                'nama_file'   => $file->getClientOriginalName(), // PERBAIKAN: nama_file
                 'status'      => $request->status ?? 'pending',
                 'keterangan'  => $request->keterangan,
             ]);
@@ -506,7 +495,7 @@ class DokumenController extends Controller
                 return redirect()->back()->with('error', 'File tidak ditemukan di server.');
             }
 
-            return response()->download($filePath, $dokumen->file_name);
+            return response()->download($filePath, $dokumen->nama_file); // PERBAIKAN: nama_file
 
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal download: ' . $e->getMessage());
@@ -529,7 +518,7 @@ class DokumenController extends Controller
                 return redirect()->back()->with('error', 'File tidak ditemukan!');
             }
 
-            return response()->download($filePath, $dokumen->file_name);
+            return response()->download($filePath, $dokumen->nama_file); // PERBAIKAN: nama_file
 
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal download: ' . $e->getMessage());
@@ -549,7 +538,7 @@ class DokumenController extends Controller
                 return redirect()->back()->with('error', 'File tidak ditemukan!');
             }
 
-            return response()->download($filePath, $dokumen->file_name);
+            return response()->download($filePath, $dokumen->nama_file); // PERBAIKAN: nama_file
 
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal download: ' . $e->getMessage());
