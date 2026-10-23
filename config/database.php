@@ -5,19 +5,7 @@ use Pdo\Mysql;
 
 return [
 
-    /*
-    |--------------------------------------------------------------------------
-    | Default Database Connection Name
-    |--------------------------------------------------------------------------
-    */
-
     'default' => env('DB_CONNECTION', 'mysql'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Database Connections
-    |--------------------------------------------------------------------------
-    */
 
     'connections' => [
 
@@ -37,13 +25,13 @@ return [
             'driver' => 'mysql',
             'url' => env('DB_URL'),
             
-            // --- HARDCODE KREDENSIAL WASMER DI SINI ---
+            // --- HARDCODE KREDENSIAL BARU DARI WASMER ---
             'host' => 'db.fr-roub1.bengt.wasmernet.com',
             'port' => '20184',
             'database' => 'db_41046cc6',
-            'username' => 'user_cefe2475',
-            'password' => 'pw_3H4Q3FxZg4l9Rw5rLg0M6zI4BKMYqoHk',
-            // ------------------------------------------
+            'username' => 'user_31294914', // <-- USERNAME BARU
+            'password' => 'pw_3H4Q3FxZg4l9Rw5rLg0M6zI4BKMYqoHk', // <-- PASSWORD BARU
+            // --------------------------------------------
 
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => env('DB_CHARSET', 'utf8mb4'),
@@ -107,22 +95,10 @@ return [
 
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Migration Repository Table
-    |--------------------------------------------------------------------------
-    */
-
     'migrations' => [
         'table' => 'migrations',
         'update_date_on_publish' => true,
     ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Redis Databases
-    |--------------------------------------------------------------------------
-    */
 
     'redis' => [
 
