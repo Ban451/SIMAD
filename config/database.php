@@ -11,7 +11,7 @@ return [
     |--------------------------------------------------------------------------
     */
 
-    'default' => env('DB_CONNECTION', 'sqlite'),
+    'default' => env('DB_CONNECTION', 'mysql'),
 
     /*
     |--------------------------------------------------------------------------
@@ -36,12 +36,15 @@ return [
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DB_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', '3306'),
-            // --- INI BAGIAN YANG DIPERBAIKI ---
-            'database' => env('DB_DATABASE', env('DB_NAME', 'laravel')), 
-            'username' => env('DB_USERNAME', 'root'),
-            'password' => env('DB_PASSWORD', ''),
+            
+            // --- HARDCODE KREDENSIAL WASMER DI SINI ---
+            'host' => 'db.fr-roub1.bengt.wasmernet.com',
+            'port' => '20184',
+            'database' => 'db_41046cc6',
+            'username' => 'user_cefe2475',
+            'password' => 'pw_3H4Q3FxZg4l9Rw5rLg0M6zI4BKMYqoHk',
+            // ------------------------------------------
+
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => env('DB_CHARSET', 'utf8mb4'),
             'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
@@ -59,7 +62,7 @@ return [
             'url' => env('DB_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '3306'),
-            'database' => env('DB_DATABASE', env('DB_NAME', 'laravel')), // Ubah juga ini
+            'database' => env('DB_DATABASE', env('DB_NAME', 'laravel')),
             'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),
             'unix_socket' => env('DB_SOCKET', ''),
@@ -79,7 +82,7 @@ return [
             'url' => env('DB_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '5432'),
-            'database' => env('DB_DATABASE', env('DB_NAME', 'laravel')), // Ubah juga ini
+            'database' => env('DB_DATABASE', env('DB_NAME', 'laravel')),
             'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),
             'charset' => env('DB_CHARSET', 'utf8'),
@@ -94,7 +97,7 @@ return [
             'url' => env('DB_URL'),
             'host' => env('DB_HOST', 'localhost'),
             'port' => env('DB_PORT', '1433'),
-            'database' => env('DB_DATABASE', env('DB_NAME', 'laravel')), // Ubah juga ini
+            'database' => env('DB_DATABASE', env('DB_NAME', 'laravel')),
             'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),
             'charset' => env('DB_CHARSET', 'utf8'),
