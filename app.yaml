@@ -39,12 +39,6 @@ jobs:
       command: after_deploy
   name: after_deploy
   trigger: post-deployment
-- name: migrate-database
-  trigger: post-deployment
-  action:
-    execute:
-      command: "php"
-      cli_args: ["artisan", "migrate:fresh", "--seed", "--force"]
 kind: wasmer.io/App.v0
 name: simad
 owner: ban451
