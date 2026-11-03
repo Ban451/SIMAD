@@ -11,6 +11,17 @@ define('LARAVEL_START', microtime(true));
 if (file_exists(__DIR__.'/../bootstrap/cache/config.php')) {
     @unlink(__DIR__.'/../bootstrap/cache/config.php');
 }
+
+// Hapus cache view (opsional, agar perubahan blade langsung terlihat)
+$viewCachePath = __DIR__.'/../storage/framework/views/';
+if (is_dir($viewCachePath)) {
+    $files = glob($viewCachePath . '*');
+    foreach ($files as $file) {
+        if (is_file($file)) {
+            @unlink($file);
+        }
+    }
+}
 // =========================================================================
 
 // =========================================================================
