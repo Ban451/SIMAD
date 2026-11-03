@@ -76,7 +76,7 @@
 
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-    {{-- SIDEBAR --}}
+    <!-- SIDEBAR -->
     <div class="sidebar" id="sidebar">
         <div class="brand">
             <h4><i class="bi bi-file-earmark-text"></i> SIMAD<span>.</span></h4>
@@ -103,7 +103,7 @@
         </div>
     </div>
 
-    {{-- MAIN --}}
+    <!-- MAIN -->
     <div class="main-content">
         <div class="topbar">
             <div class="d-flex align-items-center gap-2">
@@ -121,7 +121,7 @@
             </div>
         </div>
 
-        {{-- ============ PAGE: DASHBOARD ============ --}}
+        <!-- DASHBOARD -->
         <div id="page-dashboard" class="page-section active">
             <div class="row g-3 mb-4">
                 <div class="col-6 col-md-3">
@@ -169,7 +169,7 @@
             </div>
         </div>
 
-        {{-- ============ PAGE: DOKUMEN ============ --}}
+        <!-- DOKUMEN -->
         <div id="page-dokumen" class="page-section">
             <div class="filter-section">
                 <div class="row align-items-center g-2">
@@ -206,14 +206,7 @@
                     <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>DOKUMEN</th>
-                                <th>SISWA</th>
-                                <th>KELAS</th>
-                                <th>KATEGORI</th>
-                                <th>STATUS</th>
-                                <th>TANGGAL</th>
-                                <th>AKSI</th>
+                                <th>ID</th><th>DOKUMEN</th><th>SISWA</th><th>KELAS</th><th>KATEGORI</th><th>STATUS</th><th>TANGGAL</th><th>AKSI</th>
                             </tr>
                         </thead>
                         <tbody id="dokumenBody">
@@ -231,12 +224,8 @@
                                 </td>
                                 <td>{{ $dok->created_at->format('d M Y') }}</td>
                                 <td>
-                                    <a href="{{ route('dokumen.preview', $dok->id) }}" target="_blank" class="btn btn-sm btn-outline-primary btn-action">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    <a href="{{ route('dokumen.download', $dok->id) }}" class="btn btn-sm btn-outline-success btn-action">
-                                        <i class="bi bi-download"></i>
-                                    </a>
+                                    <a href="{{ route('dokumen.preview', $dok->id) }}" target="_blank" class="btn btn-sm btn-outline-primary btn-action"><i class="bi bi-eye"></i></a>
+                                    <a href="{{ route('dokumen.download', $dok->id) }}" class="btn btn-sm btn-outline-success btn-action"><i class="bi bi-download"></i></a>
                                 </td>
                             </tr>
                             @empty
@@ -253,7 +242,7 @@
             </div>
         </div>
 
-        {{-- ============ PAGE: SISWA ============ --}}
+        <!-- SISWA -->
         <div id="page-siswa" class="page-section">
             <div class="card">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center">
@@ -276,7 +265,16 @@
                                     <td><span class="badge-kelas">{{ $s->kelas->nama_kelas ?? 'Belum Punya Kelas' }}</span></td>
                                     <td>{{ $s->dokumen->count() }}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                        <!-- EDIT SISWA: ditambahkan data attributes & modal target -->
+                                        <button class="btn btn-sm btn-outline-warning btn-edit-siswa" 
+                                                data-id="{{ $s->id }}" 
+                                                data-nama="{{ $s->nama }}" 
+                                                data-nis="{{ $s->nis }}" 
+                                                data-kelas="{{ $s->kelas_id }}"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#siswaEditModal">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
                                         <button class="btn btn-sm btn-outline-danger btn-hapus-user" data-id="{{ $s->id }}"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
@@ -290,7 +288,7 @@
             </div>
         </div>
 
-        {{-- ============ PAGE: GURU ============ --}}
+        <!-- GURU -->
         <div id="page-guru" class="page-section">
             <div class="card">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center">
@@ -348,7 +346,7 @@
             </div>
         </div>
 
-        {{-- ============ PAGE: KELAS ============ --}}
+        <!-- KELAS -->
         <div id="page-kelas" class="page-section">
             <div class="card">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center">
@@ -388,9 +386,7 @@
                                                 data-bs-target="#kelasEditModal">
                                             <i class="bi bi-pencil"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-outline-danger btn-hapus-kelas" data-id="{{ $k->id }}">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger btn-hapus-kelas" data-id="{{ $k->id }}"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
                                 @empty
@@ -403,7 +399,7 @@
             </div>
         </div>
 
-        {{-- ============ PAGE: PROFIL ============ --}}
+        <!-- PROFIL -->
         <div id="page-profil" class="page-section">
             <div class="card">
                 <div class="card-header bg-white"><h6 class="mb-0"><i class="bi bi-person-circle"></i> Profil Saya</h6></div>
@@ -430,7 +426,7 @@
         </div>
     </div>
 
-    {{-- ============ MODAL UPLOAD DOKUMEN ============ --}}
+    <!-- MODAL UPLOAD DOKUMEN -->
     <div class="modal fade" id="uploadModal" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
@@ -486,7 +482,7 @@
         </div>
     </div>
 
-    {{-- ============ MODAL TAMBAH GURU ============ --}}
+    <!-- MODAL TAMBAH GURU -->
     <div class="modal fade" id="guruModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -530,7 +526,7 @@
         </div>
     </div>
 
-    {{-- ============ MODAL ARAHKAN KELAS ============ --}}
+    <!-- MODAL ARAHKAN KELAS -->
     <div class="modal fade" id="arahkanModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -551,7 +547,6 @@
                                 <option value="{{ $k->id }}">{{ $k->nama_kelas }}</option>
                                 @endforeach
                             </select>
-                            <small class="text-muted">Pilih "-- Lepas dari Kelas --" untuk melepas guru dari kelas saat ini.</small>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -563,7 +558,7 @@
         </div>
     </div>
 
-    {{-- ============ MODAL TAMBAH SISWA ============ --}}
+    <!-- MODAL TAMBAH SISWA -->
     <div class="modal fade" id="siswaModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -607,7 +602,52 @@
         </div>
     </div>
 
-    {{-- ============ MODAL TAMBAH KELAS ============ --}}
+    <!-- MODAL EDIT SISWA (BARU) -->
+    <div class="modal fade" id="siswaEditModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Edit Siswa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="formEditSiswa" action="" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-body">
+                        <input type="hidden" name="role" value="siswa">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nama</label>
+                            <input type="text" name="nama" id="editNama" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">NIS</label>
+                            <input type="text" name="nis" id="editNis" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Password (Kosongkan jika tidak diubah)</label>
+                            <input type="password" name="password" class="form-control" minlength="8">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Kelas</label>
+                            <select name="kelas_id" id="editKelas" class="form-control" required>
+                                <option value="">Pilih Kelas</option>
+                                @foreach($data['kelas'] ?? [] as $k)
+                                <option value="{{ $k->id }}">{{ $k->nama_kelas }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="alert alert-danger d-none" id="errorEditSiswa"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TAMBAH KELAS -->
     <div class="modal fade" id="kelasModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -659,7 +699,7 @@
         </div>
     </div>
 
-    {{-- ============ MODAL EDIT KELAS ============ --}}
+    <!-- MODAL EDIT KELAS -->
     <div class="modal fade" id="kelasEditModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -712,7 +752,7 @@
         </div>
     </div>
 
-    {{-- TOAST --}}
+    <!-- TOAST -->
     <div class="toast-container">
         <div id="liveToast" class="toast" role="alert">
             <div class="toast-header">
@@ -885,6 +925,55 @@
             });
         });
 
+        /* ================= EDIT SISWA (FUNGSI BARU) ================= */
+        document.querySelectorAll('.btn-edit-siswa').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const id = this.dataset.id;
+                document.getElementById('editNama').value = this.dataset.nama;
+                document.getElementById('editNis').value = this.dataset.nis;
+                document.getElementById('editKelas').value = this.dataset.kelas;
+                document.getElementById('formEditSiswa').action = `{{ url('/users') }}/${id}`;
+            });
+        });
+
+        document.getElementById('formEditSiswa')?.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const form = this;
+            const btn = form.querySelector('button[type="submit"]');
+            const errorBox = document.getElementById('errorEditSiswa');
+            const original = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Menyimpan...';
+            errorBox.classList.add('d-none');
+
+            fetch(form.action, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+                body: new FormData(form),
+            })
+            .then(async res => {
+                const data = await res.json();
+                if (!res.ok) throw data;
+                return data;
+            })
+            .then(data => {
+                showToast(data.message || 'Siswa berhasil diupdate', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('siswaEditModal'))?.hide();
+                setTimeout(() => location.reload(), 800);
+            })
+            .catch(err => {
+                let msg = err.message || 'Terjadi kesalahan';
+                if (err.errors) msg = Object.values(err.errors).flat().join('\n');
+                errorBox.textContent = msg;
+                errorBox.classList.remove('d-none');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = original;
+            });
+        });
+
         /* ================= MODAL ARAHKAN KELAS ================= */
         document.querySelectorAll('[data-bs-target="#arahkanModal"]').forEach(btn => {
             btn.addEventListener('click', function () {
@@ -902,7 +991,6 @@
             const original = btn.innerHTML;
             const kelasId = form.querySelector('[name="kelas_id"]').value;
 
-            // Konfirmasi khusus kalau melepas kelas
             if (!kelasId) {
                 if (!confirm('Yakin ingin melepas guru ini dari kelasnya?')) return;
             }
