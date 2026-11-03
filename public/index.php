@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 define('LARAVEL_START', microtime(true));
 
 // =========================================================================
-// TRIK PAMUNGKAS: BUAT TABEL OTOMATIS VIA SQL MANUAL (TANPA ARTISAN)
+// TRIK PAMUNGKAS: BUAT TABEL & ISI DATA OTOMATIS VIA SQL MANUAL
 // =========================================================================
 try {
     $pdo = new PDO(
@@ -99,6 +99,37 @@ try {
             die("Gagal membuat tabel: " . $ex->getMessage());
         }
     }
+}
+
+// =========================================================================
+// TAMBAHAN BARU: CEK & ISI TABEL KATEGORI JIKA MASIH KOSONG
+// =========================================================================
+try {
+    // Pastikan koneksi PDO tersedia (jika blok di atas gagal, buat koneksi baru)
+    if (!isset($pdo)) {
+        $pdo = new PDO(
+            'mysql:host=db.fr-roub1.bengt.wasmernet.com;port=20184;dbname=db_41046cc6',
+            'user_31294914', 
+            'pw_3H4Q3FxZg4l9Rw5rLg0M6zI4BKMYqoHk'
+        );
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    }
+
+    // Hitung jumlah baris di tabel kategori_dokumen
+    $countKategori = $pdo->query("SELECT COUNT(*) FROM kategori_dokumen")->fetchColumn();
+
+    // Jika kosong, masukkan data default
+    if ($countKategori == 0) {
+        $pdo->exec("INSERT INTO kategori_dokumen (nama_kategori, kode, created_at, updated_at) VALUES 
+            ('Rapor', 'RAPOR', NOW(), NOW()),
+            ('Ijazah', 'IJAZAH', NOW(), NOW()),
+            ('Sertifikat TOEIC', 'TOEIC', NOW(), NOW()),
+            ('Sertifikat UKK', 'UKK', NOW(), NOW()),
+            ('Sertifikat PKL', 'PKL', NOW(), NOW())
+        ");
+    }
+} catch (Exception $e) {
+    // Abaikan error jika tabel belum siap
 }
 // =========================================================================
 
