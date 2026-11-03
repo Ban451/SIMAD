@@ -5,7 +5,20 @@ use Pdo\Mysql;
 
 return [
 
-    'default' => env('DB_CONNECTION', 'mysql'),
+    /*
+    |--------------------------------------------------------------------------
+    | Default Database Connection Name
+    |--------------------------------------------------------------------------
+    */
+
+    // Paksa default ke mysql
+    'default' => 'mysql',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Database Connections
+    |--------------------------------------------------------------------------
+    */
 
     'connections' => [
 
@@ -25,12 +38,12 @@ return [
             'driver' => 'mysql',
             'url' => env('DB_URL'),
             
-            // --- HARDCODE KREDENSIAL BARU DARI WASMER ---
+            // --- HARDCODE TOTAL KREDENSIAL WASMER ---
             'host' => 'db.fr-roub1.bengt.wasmernet.com',
             'port' => '20184',
             'database' => 'db_41046cc6',
-            'username' => 'user_31294914', // <-- USERNAME BARU
-            'password' => 'pw_3H4Q3FxZg4l9Rw5rLg0M6zI4BKMYqoHk', // <-- PASSWORD BARU
+            'username' => 'user_31294914', 
+            'password' => 'pw_3H4Q3FxZg4l9Rw5rLg0M6zI4BKMYqoHk', 
             // --------------------------------------------
 
             'unix_socket' => env('DB_SOCKET', ''),
@@ -95,10 +108,22 @@ return [
 
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Migration Repository Table
+    |--------------------------------------------------------------------------
+    */
+
     'migrations' => [
         'table' => 'migrations',
         'update_date_on_publish' => true,
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Redis Databases
+    |--------------------------------------------------------------------------
+    */
 
     'redis' => [
 
