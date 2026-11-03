@@ -183,7 +183,8 @@
                                 </td>
                                 <td>{{ $dok->created_at->format('d M Y') }}</td>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-primary btn-action" onclick="openPreview('{{ route('dokumen.saya.preview', $dok->id) }}', '{{ addslashes($dok->judul) }}', '{{ $dok->nama_file }}')"><i class="bi bi-eye"></i></button>
+                                    <!-- PERUBAHAN: Panggil openPreview dengan parameter ID -->
+                                    <button class="btn btn-sm btn-outline-primary btn-action" onclick="openPreview({{ $dok->id }}, '{{ addslashes($dok->judul) }}', '{{ $dok->nama_file }}')"><i class="bi bi-eye"></i></button>
                                     <a href="{{ route('dokumen.saya.download', $dok->id) }}" class="btn btn-sm btn-outline-success btn-action"><i class="bi bi-download"></i></a>
                                 </td>
                             </tr>
@@ -225,7 +226,8 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-primary btn-action" onclick="openPreview('{{ route('dokumen.saya.preview', $dok->id) }}', '{{ addslashes($dok->judul) }}', '{{ $dok->nama_file }}')"><i class="bi bi-eye"></i></button>
+                                    <!-- PERUBAHAN: Panggil openPreview dengan parameter ID -->
+                                    <button class="btn btn-sm btn-outline-primary btn-action" onclick="openPreview({{ $dok->id }}, '{{ addslashes($dok->judul) }}', '{{ $dok->nama_file }}')"><i class="bi bi-eye"></i></button>
                                     <a href="{{ route('dokumen.saya.download', $dok->id) }}" class="btn btn-sm btn-outline-success btn-action"><i class="bi bi-download"></i></a>
                                 </td>
                             </tr>
@@ -359,7 +361,6 @@
                             <label class="form-label fw-bold">Jenis Dokumen <span class="text-danger">*</span></label>
                             <select name="kategori_id" class="form-control" required>
                                 <option value="">Pilih Jenis Dokumen</option>
-                                <!-- PASTIKAN MENGGUNAKAN $data['kategori'] -->
                                 @if(isset($data['kategori']) && $data['kategori']->count() > 0)
                                     @foreach($data['kategori'] as $kat)
                                         <option value="{{ $kat->id }}">{{ $kat->nama_kategori }}</option>
@@ -438,11 +439,12 @@
         @if(session('success')) showToast('{{ session('success') }}', 'success'); @endif
         @if(session('error')) showToast('{{ session('error') }}', 'danger'); @endif
 
-        // FITUR PREVIEW DOKUMEN
+        // FITUR PREVIEW DOKUMEN (VERSI BASE64 URL)
         let currentZoom = 100;
         let currentType = '';
 
-        function openPreview(url, title, filename) {
+        // Parameter diubah menjadi ID (bukan URL langsung)
+        function openPreview(id, title, filename) {
             const ext = filename.split('.').pop().toLowerCase();
             const iframe = document.getElementById('previewFrame');
             const img = document.getElementById('previewImage');
@@ -453,7 +455,12 @@
             
             document.getElementById('previewTitle').textContent = title;
             document.getElementById('fileNameLabel').innerHTML = `${currentZoom}%`;
-            document.getElementById('downloadLinkBtn').href = url.replace('preview', 'download');
+            
+            // Buat URL dari Route Laravel berdasarkan ID
+            const url = `/dokumen-saya/preview/${id}`;
+            const downloadUrl = `/dokumen-saya/download/${id}`;
+            
+            document.getElementById('downloadLinkBtn').href = downloadUrl;
 
             iframe.style.display = 'none'; iframe.src = '';
             img.style.display = 'none'; img.src = '';
@@ -474,7 +481,7 @@
                 }).catch(err => { docxContainer.innerHTML = `<div class="alert alert-danger m-3">Gagal memuat: ${err.message}</div>`; });
             } else if (ext === 'doc') {
                 iframe.style.display = 'block';
-                iframe.src = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
+                iframe.src = `https://docs.google.com/viewer?url=${encodeURIComponent(window.location.origin + url)}&embedded=true`;
                 iframe.style.transform = `scale(1)`;
             } else {
                 iframe.style.display = 'block';
