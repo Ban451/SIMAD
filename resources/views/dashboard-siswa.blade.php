@@ -77,9 +77,7 @@
         #previewDocx .docx-wrapper { background: transparent !important; padding: 0 !important; }
         #previewDocx .docx { background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: 0 auto; }
 
-        /* ========================================================
-           CSS KHUSUS RESPONSIVE (Hanya aktif di HP/Tablet)
-           ======================================================== */
+        /* RESPONSIVE */
         @media (max-width: 991px) {
             .sidebar { left: -260px; }
             .sidebar.show { left: 0; }
@@ -91,7 +89,6 @@
 </head>
 <body>
 
-    <!-- Overlay untuk HP -->
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
     <!-- Sidebar -->
@@ -132,7 +129,6 @@
     <div class="main-content">
         <div class="topbar">
             <div class="d-flex align-items-center gap-2">
-                <!-- TOMBOL HAMBURGER (Hanya muncul di HP) -->
                 <button class="btn btn-light d-lg-none shadow-sm px-2" onclick="toggleSidebar()">
                     <i class="bi bi-list fs-3"></i>
                 </button>
@@ -363,9 +359,14 @@
                             <label class="form-label fw-bold">Jenis Dokumen <span class="text-danger">*</span></label>
                             <select name="kategori_id" class="form-control" required>
                                 <option value="">Pilih Jenis Dokumen</option>
-                                @foreach($data['kategori'] ?? [] as $kat)
-                                <option value="{{ $kat->id }}">{{ $kat->nama_kategori }}</option>
-                                @endforeach
+                                <!-- PASTIKAN MENGGUNAKAN $data['kategori'] -->
+                                @if(isset($data['kategori']) && $data['kategori']->count() > 0)
+                                    @foreach($data['kategori'] as $kat)
+                                        <option value="{{ $kat->id }}">{{ $kat->nama_kategori }}</option>
+                                    @endforeach
+                                @else
+                                    <option value="" disabled>Data kategori tidak ditemukan</option>
+                                @endif
                             </select>
                         </div>
                         <div class="mb-3">
@@ -419,7 +420,6 @@
                 const titles = {'dashboard': 'Dashboard Siswa', 'dokumen': 'Dokumen Saya', 'request': 'Request Dokumen', 'profil': 'Profil'};
                 document.getElementById('page-title').textContent = titles[page] || page;
 
-                // Tutup menu saat di klik (Hanya HP)
                 if (window.innerWidth < 992) toggleSidebar();
             });
         });
