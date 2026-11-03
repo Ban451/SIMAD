@@ -6,6 +6,14 @@ use Illuminate\Http\Request;
 define('LARAVEL_START', microtime(true));
 
 // =========================================================================
+// TRIK PAMUNGKAS: HAPUS CACHE CONFIG AGAR SELALU BACA DATABASE WASMER
+// =========================================================================
+if (file_exists(__DIR__.'/../bootstrap/cache/config.php')) {
+    @unlink(__DIR__.'/../bootstrap/cache/config.php');
+}
+// =========================================================================
+
+// =========================================================================
 // TRIK PAMUNGKAS: BUAT TABEL & ISI DATA OTOMATIS VIA SQL MANUAL
 // =========================================================================
 try {
@@ -130,6 +138,17 @@ try {
     }
 } catch (Exception $e) {
     // Abaikan error jika tabel belum siap
+}
+// =========================================================================
+
+// =========================================================================
+// TAMBAHAN BARU: BUAT SYMLINK STORAGE AGAR FILE BISA DIAKSES
+// =========================================================================
+$storagePath = __DIR__ . '/../storage/app/public';
+$publicStoragePath = __DIR__ . '/storage';
+
+if (!file_exists($publicStoragePath) && file_exists($storagePath)) {
+    @symlink($storagePath, $publicStoragePath);
 }
 // =========================================================================
 
