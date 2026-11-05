@@ -144,7 +144,7 @@ class DokumenController extends Controller
             if ($request->filled('request_id')) {
                 $req = DokumenRequest::find($request->request_id);
                 if ($req && $req->siswa_id == $request->siswa_id) {
-                    $req->update(['status' => 'approved', 'processed_at' => now()]);
+                    $req->update(['status' => 'approved', 'processed_at' => now(), 'processed_by' => $user->id]);
                 }
             }
 
@@ -170,42 +170,37 @@ class DokumenController extends Controller
     }
 
     // ========================================
-    // FUNGSI BANTUAN: KONVERSI GAMBAR KE PDF
+    // FUNGSI BANTUAN: KONVERSI GAMBAR KE PDF (FIX DATA URI)
     // ========================================
     private function generatePdfFromBase64($base64Data, $fileName)
     {
-        // 1. Decode Base64 menjadi data gambar
-        $imageData = base64_decode($base64Data);
-        
-        // 2. Buat file gambar sementara di folder public
-        $tempImageName = 'temp_' . time() . '.png';
-        $tempPath = public_path($tempImageName);
-        file_put_contents($tempPath, $imageData);
+        // 1. Tentukan tipe MIME gambar (default PNG)
+        $mimeType = 'image/png';
+        if (strpos(strtolower($fileName), '.jpg') !== false || strpos(strtolower($fileName), '.jpeg') !== false) {
+            $mimeType = 'image/jpeg';
+        }
 
-        // 3. Buat HTML untuk dirender ke PDF
+        // 2. Buat HTML menggunakan Data URI (Tidak perlu file sementara)
+        // Ini akan mencegah gambar "kotak silang" (broken image) di DomPDF
         $html = '
             <html>
             <head>
                 <style>
-                    body { margin: 0; padding: 0; text-align: center; }
-                    img { max-width: 100%; height: auto; }
+                    @page { margin: 0; }
+                    body { margin: 0; padding: 0; text-align: center; background: white; }
+                    img { max-width: 100%; height: auto; display: block; margin: 0 auto; }
                 </style>
             </head>
             <body>
-                <img src="' . $tempPath . '">
+                <img src="data:' . $mimeType . ';base64,' . $base64Data . '">
             </body>
             </html>
         ';
 
-        // 4. Generate PDF
+        // 3. Generate PDF
         $pdf = Pdf::loadHTML($html);
         
-        // 5. Hapus gambar sementara
-        if (File::exists($tempPath)) {
-            File::delete($tempPath);
-        }
-
-        // 6. Return PDF (ubah ekstensi nama file menjadi .pdf)
+        // 4. Return PDF (ubah ekstensi nama file menjadi .pdf)
         $pdfName = pathinfo($fileName, PATHINFO_FILENAME) . '.pdf';
         return $pdf->download($pdfName);
     }
