@@ -54,12 +54,18 @@ class DokumenController extends Controller
 
         try {
             $file = $request->file('file');
+            
+            // VALIDASI FILE KOSONG
+            if (!$file->isValid() || $file->getSize() == 0) {
+                return response()->json(['success' => false, 'message' => 'File kosong atau gagal diunggah.'], 400);
+            }
+
             // UBAH FILE MENJADI BASE64
             $fileData = base64_encode(file_get_contents($file->getRealPath()));
 
             $dokumen = Dokumen::create([
                 'judul' => $request->judul,
-                'file_path' => $fileData, // Simpan teks base64 ke DB
+                'file_path' => $fileData,
                 'nama_file' => $file->getClientOriginalName(),
                 'keterangan' => $request->keterangan,
                 'siswa_id' => $request->siswa_id,
@@ -115,6 +121,12 @@ class DokumenController extends Controller
             }
 
             $file = $request->file('file');
+
+            // VALIDASI FILE KOSONG
+            if (!$file->isValid() || $file->getSize() == 0) {
+                return response()->json(['success' => false, 'message' => 'File kosong atau gagal diunggah.'], 400);
+            }
+
             // UBAH FILE MENJADI BASE64
             $fileData = base64_encode(file_get_contents($file->getRealPath()));
 
@@ -123,7 +135,7 @@ class DokumenController extends Controller
                 'kategori_id' => $request->kategori_id,
                 'siswa_id' => $request->siswa_id,
                 'uploaded_by' => $user->id,
-                'file_path' => $fileData, // Simpan teks base64 ke DB
+                'file_path' => $fileData,
                 'nama_file' => $file->getClientOriginalName(),
                 'status' => $request->status ?? 'pending',
                 'keterangan' => $request->keterangan,
@@ -164,6 +176,12 @@ class DokumenController extends Controller
     public function download($id)
     {
         $dokumen = Dokumen::findOrFail($id);
+        
+        // Cek jika file kosong/rusak
+        if (empty($dokumen->file_path) || strlen($dokumen->file_path) < 50) {
+            abort(404, 'File dokumen tidak valid atau rusak.');
+        }
+
         $fileData = base64_decode($dokumen->file_path);
         return response($fileData)->header('Content-Disposition', 'attachment; filename="' . $dokumen->nama_file . '"');
     }
@@ -174,6 +192,10 @@ class DokumenController extends Controller
         $dokumen = Dokumen::with('siswa')->findOrFail($id);
         if ($dokumen->siswa->kelas_id != $user->kelas_id) abort(403, 'Akses ditolak.');
 
+        if (empty($dokumen->file_path) || strlen($dokumen->file_path) < 50) {
+            abort(404, 'File dokumen tidak valid atau rusak.');
+        }
+
         $fileData = base64_decode($dokumen->file_path);
         return response($fileData)->header('Content-Disposition', 'attachment; filename="' . $dokumen->nama_file . '"');
     }
@@ -181,6 +203,11 @@ class DokumenController extends Controller
     public function downloadSiswa($id)
     {
         $dokumen = Dokumen::where('id', $id)->where('siswa_id', Auth::id())->firstOrFail();
+
+        if (empty($dokumen->file_path) || strlen($dokumen->file_path) < 50) {
+            abort(404, 'File dokumen tidak valid atau rusak.');
+        }
+
         $fileData = base64_decode($dokumen->file_path);
         return response($fileData)->header('Content-Disposition', 'attachment; filename="' . $dokumen->nama_file . '"');
     }
@@ -188,9 +215,13 @@ class DokumenController extends Controller
     public function preview($id)
     {
         $dokumen = Dokumen::findOrFail($id);
+
+        if (empty($dokumen->file_path) || strlen($dokumen->file_path) < 50) {
+            abort(404, 'File dokumen tidak valid atau rusak.');
+        }
+
         $fileData = base64_decode($dokumen->file_path);
         
-        // Deteksi tipe file
         $finfo = finfo_open();
         $mimeType = finfo_buffer($finfo, $fileData, FILEINFO_MIME_TYPE);
         
@@ -203,6 +234,10 @@ class DokumenController extends Controller
         $dokumen = Dokumen::with('siswa')->findOrFail($id);
         if ($dokumen->siswa->kelas_id != $user->kelas_id) abort(403, 'Akses ditolak.');
 
+        if (empty($dokumen->file_path) || strlen($dokumen->file_path) < 50) {
+            abort(404, 'File dokumen tidak valid atau rusak.');
+        }
+
         $fileData = base64_decode($dokumen->file_path);
         
         $finfo = finfo_open();
@@ -214,6 +249,11 @@ class DokumenController extends Controller
     public function previewSiswa($id)
     {
         $dokumen = Dokumen::where('id', $id)->where('siswa_id', Auth::id())->firstOrFail();
+
+        if (empty($dokumen->file_path) || strlen($dokumen->file_path) < 50) {
+            abort(404, 'File dokumen tidak valid atau rusak.');
+        }
+
         $fileData = base64_decode($dokumen->file_path);
         
         $finfo = finfo_open();
