@@ -8,6 +8,8 @@ use App\Models\KategoriDokumen;
 use App\Models\DokumenRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\File;
 
 class DokumenController extends Controller
 {
@@ -55,7 +57,6 @@ class DokumenController extends Controller
         try {
             $file = $request->file('file');
             
-            // VALIDASI FILE KOSONG
             if (!$file->isValid() || $file->getSize() == 0) {
                 return response()->json(['success' => false, 'message' => 'File kosong atau gagal diunggah.'], 400);
             }
@@ -122,7 +123,6 @@ class DokumenController extends Controller
 
             $file = $request->file('file');
 
-            // VALIDASI FILE KOSONG
             if (!$file->isValid() || $file->getSize() == 0) {
                 return response()->json(['success' => false, 'message' => 'File kosong atau gagal diunggah.'], 400);
             }
@@ -170,6 +170,47 @@ class DokumenController extends Controller
     }
 
     // ========================================
+    // FUNGSI BANTUAN: KONVERSI GAMBAR KE PDF
+    // ========================================
+    private function generatePdfFromBase64($base64Data, $fileName)
+    {
+        // 1. Decode Base64 menjadi data gambar
+        $imageData = base64_decode($base64Data);
+        
+        // 2. Buat file gambar sementara di folder public
+        $tempImageName = 'temp_' . time() . '.png';
+        $tempPath = public_path($tempImageName);
+        file_put_contents($tempPath, $imageData);
+
+        // 3. Buat HTML untuk dirender ke PDF
+        $html = '
+            <html>
+            <head>
+                <style>
+                    body { margin: 0; padding: 0; text-align: center; }
+                    img { max-width: 100%; height: auto; }
+                </style>
+            </head>
+            <body>
+                <img src="' . $tempPath . '">
+            </body>
+            </html>
+        ';
+
+        // 4. Generate PDF
+        $pdf = Pdf::loadHTML($html);
+        
+        // 5. Hapus gambar sementara
+        if (File::exists($tempPath)) {
+            File::delete($tempPath);
+        }
+
+        // 6. Return PDF (ubah ekstensi nama file menjadi .pdf)
+        $pdfName = pathinfo($fileName, PATHINFO_FILENAME) . '.pdf';
+        return $pdf->download($pdfName);
+    }
+
+    // ========================================
     // METHOD PREVIEW & DOWNLOAD (BASE64)
     // ========================================
 
@@ -177,11 +218,18 @@ class DokumenController extends Controller
     {
         $dokumen = Dokumen::findOrFail($id);
         
-        // Cek jika file kosong/rusak
         if (empty($dokumen->file_path) || strlen($dokumen->file_path) < 50) {
             abort(404, 'File dokumen tidak valid atau rusak.');
         }
 
+        $ext = strtolower(pathinfo($dokumen->nama_file, PATHINFO_EXTENSION));
+
+        // Jika Gambar, ubah ke PDF
+        if (in_array($ext, ['jpg', 'jpeg', 'png'])) {
+            return $this->generatePdfFromBase64($dokumen->file_path, $dokumen->nama_file);
+        }
+
+        // Jika PDF/DOCX, download langsung
         $fileData = base64_decode($dokumen->file_path);
         return response($fileData)->header('Content-Disposition', 'attachment; filename="' . $dokumen->nama_file . '"');
     }
@@ -196,6 +244,12 @@ class DokumenController extends Controller
             abort(404, 'File dokumen tidak valid atau rusak.');
         }
 
+        $ext = strtolower(pathinfo($dokumen->nama_file, PATHINFO_EXTENSION));
+
+        if (in_array($ext, ['jpg', 'jpeg', 'png'])) {
+            return $this->generatePdfFromBase64($dokumen->file_path, $dokumen->nama_file);
+        }
+
         $fileData = base64_decode($dokumen->file_path);
         return response($fileData)->header('Content-Disposition', 'attachment; filename="' . $dokumen->nama_file . '"');
     }
@@ -206,6 +260,12 @@ class DokumenController extends Controller
 
         if (empty($dokumen->file_path) || strlen($dokumen->file_path) < 50) {
             abort(404, 'File dokumen tidak valid atau rusak.');
+        }
+
+        $ext = strtolower(pathinfo($dokumen->nama_file, PATHINFO_EXTENSION));
+
+        if (in_array($ext, ['jpg', 'jpeg', 'png'])) {
+            return $this->generatePdfFromBase64($dokumen->file_path, $dokumen->nama_file);
         }
 
         $fileData = base64_decode($dokumen->file_path);

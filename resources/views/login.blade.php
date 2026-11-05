@@ -19,10 +19,11 @@
         }
         .card-header {
             background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%) !important;
-            padding: 25px !important;
+            padding: 35px 25px !important; /* Padding atas-bawah ditambah sedikit agar proporsional */
         }
         .card-header h4 {
             font-weight: 700;
+            margin-bottom: 5px;
         }
         .btn-primary {
             background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
@@ -57,12 +58,6 @@
             border-color: #1a237e;
             box-shadow: 0 0 0 0.2rem rgba(26, 35, 126, 0.25);
         }
-        .login-icon {
-            font-size: 48px;
-            display: block;
-            text-align: center;
-            margin-bottom: 10px;
-        }
     </style>
 </head>
 <body>
@@ -70,8 +65,7 @@
         <div class="row justify-content-center min-vh-100 align-items-center">
             <div class="col-md-5">
                 <div class="card shadow-lg">
-                    <div class="card-header text-white text-center py-4">
-                        <div class="login-icon">📚</div>
+                    <div class="card-header text-white text-center">
                         <h4 class="mb-0"><i class="bi bi-file-earmark-text"></i> SIMAD</h4>
                         <small>Sistem Informasi Manajemen Dokumen Akademik</small>
                     </div>
