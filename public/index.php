@@ -12,7 +12,7 @@ if (file_exists(__DIR__.'/../bootstrap/cache/config.php')) {
     @unlink(__DIR__.'/../bootstrap/cache/config.php');
 }
 
-// Hapus cache view (opsional, agar perubahan blade langsung terlihat)
+// Hapus cache view
 $viewCachePath = __DIR__.'/../storage/framework/views/';
 if (is_dir($viewCachePath)) {
     $files = glob($viewCachePath . '*');
@@ -75,11 +75,11 @@ try {
                 updated_at TIMESTAMP NULL
             )");
 
-            // 4. Buat tabel dokumen
+            // 4. Buat tabel dokumen (file_path pakai LONGTEXT untuk Base64)
             $pdo->exec("CREATE TABLE IF NOT EXISTS dokumen (
                 id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
                 judul VARCHAR(255) NOT NULL,
-                file_path VARCHAR(255) NOT NULL,
+                file_path LONGTEXT NOT NULL,
                 nama_file VARCHAR(255) NOT NULL,
                 keterangan TEXT NULL,
                 status ENUM('pending', 'aktif', 'arsip') DEFAULT 'pending',
@@ -93,7 +93,7 @@ try {
                 FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE CASCADE
             )");
 
-            // 5. Buat tabel dokumen_requests
+            // 5. Buat tabel dokumen_requests (Tambahkan processed_by)
             $pdo->exec("CREATE TABLE IF NOT EXISTS dokumen_requests (
                 id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
                 siswa_id BIGINT UNSIGNED NOT NULL,
@@ -103,13 +103,14 @@ try {
                 status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
                 alasan TEXT NULL,
                 processed_at TIMESTAMP NULL,
+                processed_by BIGINT UNSIGNED NULL,
                 created_at TIMESTAMP NULL,
                 updated_at TIMESTAMP NULL,
                 FOREIGN KEY (siswa_id) REFERENCES users(id) ON DELETE CASCADE,
                 FOREIGN KEY (kategori_id) REFERENCES kategori_dokumen(id) ON DELETE CASCADE
             )");
 
-            // Insert data admin default agar bisa login
+            // Insert data admin default
             $password = password_hash('password', PASSWORD_BCRYPT);
             $pdo->exec("INSERT INTO users (nama, email, password, role, created_at, updated_at) 
                         VALUES ('Admin SIMAD', 'admin@simad.com', '$password', 'admin', NOW(), NOW())");
@@ -121,10 +122,9 @@ try {
 }
 
 // =========================================================================
-// TAMBAHAN BARU: CEK & ISI TABEL KATEGORI JIKA MASIH KOSONG
+// ISI TABEL KATEGORI JIKA KOSONG
 // =========================================================================
 try {
-    // Pastikan koneksi PDO tersedia (jika blok di atas gagal, buat koneksi baru)
     if (!isset($pdo)) {
         $pdo = new PDO(
             'mysql:host=db.fr-roub1.bengt.wasmernet.com;port=20184;dbname=db_41046cc6',
@@ -134,10 +134,8 @@ try {
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     }
 
-    // Hitung jumlah baris di tabel kategori_dokumen
     $countKategori = $pdo->query("SELECT COUNT(*) FROM kategori_dokumen")->fetchColumn();
 
-    // Jika kosong, masukkan data default
     if ($countKategori == 0) {
         $pdo->exec("INSERT INTO kategori_dokumen (nama_kategori, kode, created_at, updated_at) VALUES 
             ('Rapor', 'RAPOR', NOW(), NOW()),
@@ -148,12 +146,12 @@ try {
         ");
     }
 } catch (Exception $e) {
-    // Abaikan error jika tabel belum siap
+    // Abaikan error
 }
 // =========================================================================
 
 // =========================================================================
-// TAMBAHAN BARU: BUAT SYMLINK STORAGE AGAR FILE BISA DIAKSES
+// SYMLINK STORAGE
 // =========================================================================
 $storagePath = __DIR__ . '/../storage/app/public';
 $publicStoragePath = __DIR__ . '/storage';

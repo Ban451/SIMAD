@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,7 +21,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Paksa matikan setelan dari .env / Wasmer env, dan kunci ke database Wasmer
+        // 1. Hapus cache config jika ada (Paksa baca ulang)
+        $configCache = base_path('bootstrap/cache/config.php');
+        if (File::exists($configCache)) {
+            File::delete($configCache);
+        }
+
+        // 2. Paksa koneksi ke database Wasmer
         config([
             'database.default' => 'mysql',
             'database.connections.mysql.host' => 'db.fr-roub1.bengt.wasmernet.com',
@@ -30,7 +37,7 @@ class AppServiceProvider extends ServiceProvider
             'database.connections.mysql.password' => 'pw_3H4Q3FxZg4l9Rw5rLg0M6zI4BKMYqoHk',
         ]);
 
-        // Paksa hapus koneksi yang mungkin sudah terbentuk dengan settingan 127.0.0.1
+        // 3. Putus koneksi lama agar memakai setelan baru
         DB::purge('mysql');
     }
 }
