@@ -121,7 +121,6 @@
     <div class="main-content">
         <div class="topbar">
             <div class="d-flex align-items-center gap-2">
-                <!-- TOMBOL HAMBURGER (Hanya muncul di HP) -->
                 <button class="btn btn-light d-lg-none shadow-sm px-2" onclick="toggleSidebar()">
                     <i class="bi bi-list fs-3"></i>
                 </button>
@@ -166,7 +165,7 @@
             <div class="table-documents mb-4">
                 <h6 class="mb-3"><i class="bi bi-envelope-paper"></i> Request Terbaru</h6>
                 @foreach($data['requests']->take(3) as $req)
-                <div class="request-card pending" id="req-card-{{ $req->id }}">
+                <div class="request-card {{ $req->status }}" id="req-card-{{ $req->id }}">
                     <div class="request-info">
                         <div>
                             <strong>{{ $req->judul }}</strong>
@@ -174,10 +173,16 @@
                                 <i class="bi bi-person"></i> {{ $req->siswa->nama ?? '-' }} | <i class="bi bi-tag"></i> {{ $req->kategori->nama_kategori ?? 'Umum' }}
                             </div>
                         </div>
-                        <div>
-                            <span class="badge-request-status pending">Menunggu</span>
-                            <button class="btn btn-sm btn-success ms-2" onclick="processRequest({{ $req->id }}, 'approved')"><i class="bi bi-check"></i></button>
-                            <button class="btn btn-sm btn-danger" onclick="processRequest({{ $req->id }}, 'rejected')"><i class="bi bi-x"></i></button>
+                        <div class="text-end mt-2 mt-sm-0">
+                            <span class="badge-request-status {{ $req->status }}" id="req-badge-{{ $req->id }}">
+                                {{ $req->status == 'pending' ? 'Menunggu' : ($req->status == 'approved' ? 'Disetujui' : 'Ditolak') }}
+                            </span>
+                            @if($req->status == 'pending')
+                                <div class="mt-2" id="req-actions-{{ $req->id }}">
+                                    <button class="btn btn-sm btn-success" onclick="processRequest({{ $req->id }}, 'approved')"><i class="bi bi-check"></i></button>
+                                    <button class="btn btn-sm btn-danger" onclick="processRequest({{ $req->id }}, 'rejected')"><i class="bi bi-x"></i></button>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -563,6 +568,7 @@
                     return;
                 }
 
+                // UPDATE UI (Hilangkan tombol & ubah warna)
                 const reqCard = document.getElementById('req-card-' + id);
                 if (reqCard) {
                     reqCard.classList.remove('pending');
@@ -573,9 +579,10 @@
                         badge.textContent = status === 'approved' ? 'Disetujui' : 'Ditolak';
                     }
                     const actions = document.getElementById('req-actions-' + id);
-                    if (actions) actions.remove();
+                    if (actions) actions.remove(); // <--- INI YANG MENGHILANGKAN TOMBOL
                 }
 
+                // Kurangi counter request
                 const reqBadge = document.getElementById('requestCountBadge');
                 const reqSideBadge = document.getElementById('requestBadge');
                 if (reqBadge) reqBadge.textContent = (parseInt(reqBadge.textContent) - 1) + ' Menunggu';
@@ -663,7 +670,7 @@
             }
         });
 
-        // 3. FUNGSI UPLOAD UNTUK REQUEST
+        // 3. FUNGSI UPLOAD UNTUK REQUEST (OTOMATIS APPROVED)
         async function uploadForRequest(id) {
             try {
                 const response = await fetch('/guru/request/' + id + '/detail', {
@@ -715,6 +722,7 @@
                     return;
                 }
 
+                // UPDATE UI: Setelah upload sukses, ubah status jadi approved
                 const reqCard = document.getElementById('req-card-' + requestId);
                 if (reqCard) {
                     reqCard.classList.remove('pending');
@@ -725,9 +733,10 @@
                         badgeReq.textContent = 'Disetujui';
                     }
                     const actions = document.getElementById('req-actions-' + requestId);
-                    if (actions) actions.remove();
+                    if (actions) actions.remove(); // Hapus tombol aksi
                 }
 
+                // Kurangi counter
                 const reqBadge = document.getElementById('requestCountBadge');
                 const reqSideBadge = document.getElementById('requestBadge');
                 if (reqBadge) reqBadge.textContent = (parseInt(reqBadge.textContent) - 1) + ' Menunggu';
@@ -739,7 +748,7 @@
 
                 form.reset();
                 bootstrap.Modal.getInstance(document.getElementById('uploadRequestModal')).hide();
-                showToast('success', 'Dokumen berhasil diunggah & request selesai.');
+                showToast('success', 'Dokumen berhasil diunggah & request disetujui.');
 
             } catch (err) {
                 errorBox.textContent = 'Gagal: ' + err.message;
