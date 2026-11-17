@@ -18,7 +18,7 @@
             overflow: hidden;
         }
         .card-header {
-            background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%) !important;
+            background: linear-gradient(135deg, #f2f2f4 0%, #10d6f4 100%) !important;
             padding: 25px !important;
         }
         .card-header h4 {
