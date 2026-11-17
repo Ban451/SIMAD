@@ -568,7 +568,6 @@
                     return;
                 }
 
-                // UPDATE UI (Hilangkan tombol & ubah warna)
                 const reqCard = document.getElementById('req-card-' + id);
                 if (reqCard) {
                     reqCard.classList.remove('pending');
@@ -579,10 +578,9 @@
                         badge.textContent = status === 'approved' ? 'Disetujui' : 'Ditolak';
                     }
                     const actions = document.getElementById('req-actions-' + id);
-                    if (actions) actions.remove(); // <--- INI YANG MENGHILANGKAN TOMBOL
+                    if (actions) actions.remove();
                 }
 
-                // Kurangi counter request
                 const reqBadge = document.getElementById('requestCountBadge');
                 const reqSideBadge = document.getElementById('requestBadge');
                 if (reqBadge) reqBadge.textContent = (parseInt(reqBadge.textContent) - 1) + ' Menunggu';
@@ -606,6 +604,17 @@
             const formData = new FormData(form);
             const errorBox = document.getElementById('uploadError');
             const submitBtn = form.querySelector('button[type="submit"]');
+
+            // VALIDASI UKURAN FILE (MAKS 5MB)
+            const fileInput = form.querySelector('input[name="file"]');
+            if (fileInput && fileInput.files.length > 0) {
+                const fileSizeMB = fileInput.files[0].size / 1024 / 1024;
+                if (fileSizeMB > 5) {
+                    errorBox.textContent = `Ukuran file terlalu besar (${fileSizeMB.toFixed(2)} MB). Maksimal 5 MB. Silakan kompres file Anda.`;
+                    errorBox.classList.remove('d-none');
+                    return; // Hentikan proses
+                }
+            }
 
             errorBox.classList.add('d-none');
             submitBtn.disabled = true;
@@ -701,6 +710,17 @@
             const submitBtn = form.querySelector('button[type="submit"]');
             const requestId = document.getElementById('requestId').value;
 
+            // VALIDASI UKURAN FILE (MAKS 5MB)
+            const fileInput = form.querySelector('input[name="file"]');
+            if (fileInput && fileInput.files.length > 0) {
+                const fileSizeMB = fileInput.files[0].size / 1024 / 1024;
+                if (fileSizeMB > 5) {
+                    errorBox.textContent = `Ukuran file terlalu besar (${fileSizeMB.toFixed(2)} MB). Maksimal 5 MB.`;
+                    errorBox.classList.remove('d-none');
+                    return;
+                }
+            }
+
             errorBox.classList.add('d-none');
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Upload...';
@@ -722,7 +742,6 @@
                     return;
                 }
 
-                // UPDATE UI: Setelah upload sukses, ubah status jadi approved
                 const reqCard = document.getElementById('req-card-' + requestId);
                 if (reqCard) {
                     reqCard.classList.remove('pending');
@@ -733,10 +752,9 @@
                         badgeReq.textContent = 'Disetujui';
                     }
                     const actions = document.getElementById('req-actions-' + requestId);
-                    if (actions) actions.remove(); // Hapus tombol aksi
+                    if (actions) actions.remove();
                 }
 
-                // Kurangi counter
                 const reqBadge = document.getElementById('requestCountBadge');
                 const reqSideBadge = document.getElementById('requestBadge');
                 if (reqBadge) reqBadge.textContent = (parseInt(reqBadge.textContent) - 1) + ' Menunggu';
