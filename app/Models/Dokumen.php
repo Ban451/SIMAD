@@ -11,18 +11,16 @@ class Dokumen extends Model
 
     protected $table = 'dokumen';
     
-    protected $fillable = [
-        'judul',
-        'kategori_id',
-        'siswa_id',
-        'uploaded_by',
-        'file_path',
-        'nama_file',
-        'status',
-        'keterangan',
-        'semester',
-        'tahun_ajaran',
-    ];
+protected $fillable = [
+    'judul',
+    'file_path',
+    'nama_file', 
+    'keterangan',
+    'status',
+    'siswa_id',
+    'kategori_id',
+    'uploaded_by',
+];
 
     // Relasi ke siswa (User)
     public function siswa()
